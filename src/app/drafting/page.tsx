@@ -20,32 +20,6 @@ export default function DraftingPage() {
 
   const [targetId, setTargetId] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [autoCompleting, setAutoCompleting] = useState(false);
-  const autoCompletingRef = useRef(false);
-
-  // Auto-complete when exactly 2 players remain and current team is empty
-  useEffect(() => {
-    if (phase === 'drafting' && remainingPlayers.length === 2 && currentTeam.length === 0 && !autoCompletingRef.current) {
-      autoCompletingRef.current = true;
-      setAutoCompleting(true);
-      
-      const p1 = remainingPlayers[0].id;
-      const p2 = remainingPlayers[1].id;
-
-      const timer = setTimeout(() => {
-        drawPlayer(p1);
-        drawPlayer(p2);
-        finalizeDrafting();
-        router.push('/bracket');
-      }, 1200);
-      
-      return () => {
-        clearTimeout(timer);
-        autoCompletingRef.current = false;
-      };
-    }
-  }, [phase, remainingPlayers, currentTeam.length, drawPlayer, finalizeDrafting, router]);
-
   // Protection: if accessed directly and not in drafting phase
   useEffect(() => {
     if (phase === 'bracket') {
@@ -176,15 +150,15 @@ export default function DraftingPage() {
                  {!isDone ? (
                    <button 
                      onClick={handleSpin}
-                     disabled={isSpinning || autoCompleting}
+                     disabled={isSpinning}
                      className="w-full py-4 rounded-xl font-black text-lg uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
                      style={{ 
-                       background: (isSpinning || autoCompleting) ? '#222' : 'linear-gradient(to right, #00D4FF, #0077FF)',
-                       color: (isSpinning || autoCompleting) ? '#555' : '#FFF',
-                       boxShadow: (isSpinning || autoCompleting) ? 'none' : '0 10px 30px -10px rgba(0,212,255,0.6)'
+                       background: isSpinning ? '#222' : 'linear-gradient(to right, #00D4FF, #0077FF)',
+                       color: isSpinning ? '#555' : '#FFF',
+                       boxShadow: isSpinning ? 'none' : '0 10px 30px -10px rgba(0,212,255,0.6)'
                      }}
                    >
-                     {autoCompleting ? 'Menyelesaikan...' : isSpinning ? 'Memutar...' : 'SPIN!'}
+                     {isSpinning ? 'Memutar...' : 'SPIN!'}
                    </button>
                  ) : (
                    <button 

@@ -139,6 +139,16 @@ export const useTournamentStore = create<TournamentState>()(
           // clear for next team
           newCurrentTeam.length = 0;
           newForcedResult = '';
+
+          // AUTO-COMPLETE: Jika sisa tepat 2 pemain, langsung gabungkan jadi tim terakhir
+          if (newRemaining.length === 2) {
+            newFinalTeams.push({
+              id: uuidv4(),
+              name: '',
+              players: [newRemaining[0], newRemaining[1]],
+            });
+            newRemaining.length = 0; // Habiskan
+          }
         }
 
         set({
@@ -147,6 +157,11 @@ export const useTournamentStore = create<TournamentState>()(
           finalTeams: newFinalTeams,
           forcedNextResult: newForcedResult,
         });
+
+        // Jika semua pemain sudah habis terundi, langsung finalize
+        if (newRemaining.length === 0) {
+          get().finalizeDrafting();
+        }
       },
 
       finalizeDrafting: () => {
