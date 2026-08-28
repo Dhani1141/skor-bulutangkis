@@ -1,87 +1,248 @@
 @import "tailwindcss";
 
-/* ── Variables ────────────────────────────────────────────── */
-:root {
+/* ══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM – BWF Pro Circuit × Modern Esports
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Custom Theme Tokens ──────────────────────────────────────── */
+@theme inline {
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  /* Neon palette */
+  --color-neon-green:  #39FF14;
+  --color-neon-red:    #FF3131;
+  --color-neon-cyan:   #00D4FF;
+  --color-neon-amber:  #FFB800;
+  --color-neon-gold:   #FFD700;
+
+  /* Surface palette */
+  --color-bg:          #0D0D0D;
+  --color-surface:     #161616;
+  --color-surface-2:   #1E1E1E;
+  --color-border:      rgba(255,255,255,0.08);
+  --color-border-2:    rgba(255,255,255,0.14);
+
+  /* Text */
+  --color-text:        #F0F0F0;
+  --color-text-muted:  #888888;
+  --color-text-dim:    #444444;
 }
 
-/* ── Base ─────────────────────────────────────────────────── */
-* {
-  box-sizing: border-box;
-}
+/* ── Base Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-html,
+html, body { height: 100%; }
+
 body {
-  height: 100%;
-}
-
-body {
+  background-color: #0D0D0D;
+  color: #F0F0F0;
   font-family: var(--font-sans);
-  background-color: #020617; /* slate-950 */
-  color: white;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Custom Scrollbar ─────────────────────────────────────── */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 2px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #161616; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* ══════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+   ══════════════════════════════════════════════════════════════ */
+
+/* Modal fade-in + scale-up */
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0px);  }
 }
 
-/* ── Bracket connector lines ──────────────────────────────── */
-.bracket-connector {
-  position: relative;
-}
-.bracket-connector::after {
-  content: "";
-  position: absolute;
-  right: -2rem;
-  top: 50%;
-  width: 2rem;
-  height: 1px;
-  background: linear-gradient(to right, rgba(100, 116, 139, 0.6), transparent);
+/* Overlay fade */
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-/* ── Score button press animation ────────────────────────── */
-@keyframes scoreFlash {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.95); background-color: rgba(255,255,255,0.2); }
+/* Score number pop + bounce */
+@keyframes scorePop {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.25); }
+  60%  { transform: scale(0.92); }
+  80%  { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
-.score-flash {
-  animation: scoreFlash 0.15s ease-out;
+
+/* Neon border pulse on active match */
+@keyframes neonBorderPulse {
+  0%, 100% { box-shadow:
+    0 0  6px rgba(255,184,0,0.4),
+    0 0 14px rgba(255,184,0,0.2),
+    inset 0 0 8px rgba(255,184,0,0.05); }
+  50%  { box-shadow:
+    0 0 12px rgba(255,184,0,0.7),
+    0 0 28px rgba(255,184,0,0.35),
+    inset 0 0 12px rgba(255,184,0,0.08); }
 }
 
-/* ── Animate shimmer for champion banner ─────────────────── */
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+/* Winner neon green glow */
+@keyframes winnerGlow {
+  0%, 100% { box-shadow:
+    0 0  8px rgba(57,255,20,0.45),
+    0 0 20px rgba(57,255,20,0.2); }
+  50%      { box-shadow:
+    0 0 14px rgba(57,255,20,0.7),
+    0 0 36px rgba(57,255,20,0.35); }
 }
+
+/* Shimmer for champion banner */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* Subtle float */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* SVG connector draw-on */
+@keyframes connectorDraw {
+  from { stroke-dashoffset: 60; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ══════════════════════════════════════════════════════════════ */
+
+/* Glassmorphism card */
+.glass {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.glass-strong {
+  background: rgba(22,22,22,0.85);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Floating depth shadow */
+.card-shadow {
+  box-shadow:
+    0 2px 0   rgba(255,255,255,0.04) inset,
+    0 6px 24px rgba(0,0,0,0.7),
+    0 1px 3px  rgba(0,0,0,0.5);
+}
+
+/* Match card – active state */
+.match-active {
+  animation: neonBorderPulse 2s ease-in-out infinite;
+  border-color: rgba(255,184,0,0.6) !important;
+}
+
+/* Match card – winner state */
+.match-winner {
+  animation: winnerGlow 2.5s ease-in-out infinite;
+  border-color: rgba(57,255,20,0.5) !important;
+}
+
+/* Modal wrapper animation */
+.modal-overlay {
+  animation: overlayFadeIn 0.2s ease-out both;
+}
+.modal-panel {
+  animation: modalFadeIn 0.25s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Score pop animation */
+.score-pop {
+  animation: scorePop 0.35s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Neon text */
+.neon-green { color: #39FF14; text-shadow: 0 0 8px rgba(57,255,20,0.6); }
+.neon-red   { color: #FF3131; text-shadow: 0 0 8px rgba(255,49,49,0.6); }
+.neon-cyan  { color: #00D4FF; text-shadow: 0 0 8px rgba(0,212,255,0.5); }
+.neon-amber { color: #FFB800; text-shadow: 0 0 8px rgba(255,184,0,0.6); }
+
+/* Shimmer text for champion */
 .shimmer-text {
-  background: linear-gradient(90deg, #fbbf24, #f59e0b, #fcd34d, #f59e0b, #fbbf24);
+  background: linear-gradient(90deg, #FFD700, #FFF8DC, #FFB800, #FFF8DC, #FFD700);
   background-size: 200% auto;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 3s linear infinite;
+  animation: shimmer 2.5s linear infinite;
 }
 
-/* ── Pulse dot ────────────────────────────────────────────── */
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+/* Neon button glow */
+.btn-neon-green {
+  background: linear-gradient(135deg, #1a4a0a 0%, #2d7a15 100%);
+  border: 1px solid rgba(57,255,20,0.4);
+  box-shadow: 0 0 20px rgba(57,255,20,0.15), 0 4px 15px rgba(0,0,0,0.5);
+  color: #39FF14;
+  transition: all 0.2s ease;
 }
-.pulse-dot {
-  animation: pulse-dot 1.5s ease-in-out infinite;
+.btn-neon-green:hover {
+  background: linear-gradient(135deg, #225510 0%, #3a9a1c 100%);
+  box-shadow: 0 0 30px rgba(57,255,20,0.35), 0 4px 20px rgba(0,0,0,0.5);
+  transform: translateY(-1px) scale(1.01);
+}
+.btn-neon-green:active {
+  transform: translateY(0px) scale(0.98);
+}
+.btn-neon-green:disabled {
+  background: #1a1a1a;
+  border-color: rgba(255,255,255,0.06);
+  color: #444;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* Score +1 buttons */
+.btn-score-a {
+  background: linear-gradient(135deg, #0a1e3a 0%, #0d2d5a 100%);
+  border: 1px solid rgba(0,212,255,0.3);
+  box-shadow: 0 0 16px rgba(0,212,255,0.1), 0 4px 12px rgba(0,0,0,0.5);
+  color: #00D4FF;
+  transition: all 0.15s ease;
+}
+.btn-score-a:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0d2a50 0%, #1040800 100%);
+  box-shadow: 0 0 26px rgba(0,212,255,0.3), 0 4px 16px rgba(0,0,0,0.5);
+  transform: scale(1.03);
+}
+.btn-score-a:active:not(:disabled) { transform: scale(0.97); }
+
+.btn-score-b {
+  background: linear-gradient(135deg, #3a0a0a 0%, #5a0d0d 100%);
+  border: 1px solid rgba(255,49,49,0.3);
+  box-shadow: 0 0 16px rgba(255,49,49,0.1), 0 4px 12px rgba(0,0,0,0.5);
+  color: #FF3131;
+  transition: all 0.15s ease;
+}
+.btn-score-b:hover:not(:disabled) {
+  background: linear-gradient(135deg, #500d0d 0%, #7a1010 100%);
+  box-shadow: 0 0 26px rgba(255,49,49,0.3), 0 4px 16px rgba(0,0,0,0.5);
+  transform: scale(1.03);
+}
+.btn-score-b:active:not(:disabled) { transform: scale(0.97); }
+
+.btn-score-a:disabled, .btn-score-b:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── SVG Connector line ───────────────────────────────────────── */
+.connector-svg path {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 0;
+  animation: connectorDraw 0.4s ease-out both;
 }

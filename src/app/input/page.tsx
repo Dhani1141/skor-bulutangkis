@@ -2,10 +2,8 @@
 
 import React, { useState } from 'react';
 import { useTournamentStore } from '@/store/tournamentStore';
-import { UserPlus, X, AlertTriangle, ChevronRight, Shuffle } from 'lucide-react';
+import { UserPlus, X, AlertTriangle, ChevronRight, Shuffle, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-// ── Komponen PlayerForm (Halaman Input Pemain) ─────────────────────────────
 
 export default function PlayerInputPage() {
   const router = useRouter();
@@ -13,36 +11,28 @@ export default function PlayerInputPage() {
     useTournamentStore();
 
   const [inputValue, setInputValue] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError]           = useState('');
 
   const totalPlayers = players.length;
-  const isEven = totalPlayers % 2 === 0;
-  const isEnough = totalPlayers >= 4;
-  const isMaxed = totalPlayers >= 16;
-  const canGenerate = isEven && isEnough;
+  const isEven       = totalPlayers % 2 === 0;
+  const isEnough     = totalPlayers >= 4;
+  const isMaxed      = totalPlayers >= 16;
+  const canGenerate  = isEven && isEnough;
 
-  // Pesan validasi
   const validationMessage = () => {
     if (totalPlayers === 0) return null;
-    if (totalPlayers < 4) return `Tambahkan ${4 - totalPlayers} pemain lagi (minimal 4 pemain = 2 tim)`;
-    if (!isEven) return 'Jumlah pemain harus genap agar bisa dibentuk tim 2v2';
+    if (totalPlayers < 4)  return `Tambahkan ${4 - totalPlayers} pemain lagi (minimal 4 pemain = 2 tim)`;
+    if (!isEven)           return 'Jumlah pemain harus genap agar bisa dibentuk tim 2v2';
     return null;
   };
 
   const handleAddPlayer = () => {
     const name = inputValue.trim();
-    if (!name) {
-      setError('Nama pemain tidak boleh kosong');
-      return;
-    }
+    if (!name) { setError('Nama pemain tidak boleh kosong'); return; }
     if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-      setError('Nama pemain sudah ada');
-      return;
+      setError('Nama pemain sudah ada'); return;
     }
-    if (isMaxed) {
-      setError('Maksimal 16 pemain (8 tim)');
-      return;
-    }
+    if (isMaxed) { setError('Maksimal 16 pemain (8 tim)'); return; }
     addPlayer(name);
     setInputValue('');
     setError('');
@@ -60,115 +50,186 @@ export default function PlayerInputPage() {
 
   const msg = validationMessage();
 
+  // Letter avatars
+  const avatarColors = [
+    'rgba(0,212,255,0.15)','rgba(255,49,49,0.15)','rgba(57,255,20,0.15)',
+    'rgba(255,184,0,0.15)','rgba(168,85,247,0.15)','rgba(255,107,53,0.15)',
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
-      {/* Header */}
-      <header className="border-b border-white/10 backdrop-blur-sm bg-white/5 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen" style={{ background: '#0D0D0D' }}>
+
+      {/* ── Ambient background blobs ── */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-[0.04]"
+          style={{ background: 'radial-gradient(circle, #00D4FF, transparent)' }} />
+        <div className="absolute top-1/2 -right-40 w-96 h-96 rounded-full opacity-[0.03]"
+          style={{ background: 'radial-gradient(circle, #39FF14, transparent)' }} />
+        <div className="absolute -bottom-20 left-1/3 w-72 h-72 rounded-full opacity-[0.03]"
+          style={{ background: 'radial-gradient(circle, #FFB800, transparent)' }} />
+      </div>
+
+      {/* ── Header ── */}
+      <header
+        className="sticky top-0 z-10"
+        style={{
+          background: 'rgba(13,13,13,0.85)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        <div className="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30 shrink-0">
+            <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0"
+              style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+            >
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">Bulu Tangkis Pro</h1>
-              <p className="text-xs text-blue-300">Double Elimination Tournament</p>
+              <div className="text-sm font-black tracking-tight" style={{ color: '#F0F0F0' }}>
+                Bulu Tangkis Pro
+              </div>
+              <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: '#00D4FF' }}>
+                Double Elimination
+              </div>
             </div>
           </div>
+
           <button
             onClick={resetTournament}
-            className="text-xs text-slate-400 hover:text-red-400 transition-colors border border-white/10 hover:border-red-500/50 px-3 py-1.5 rounded-lg"
+            className="text-xs px-3 py-1.5 rounded-lg transition-all"
+            style={{ color: '#444', border: '1px solid rgba(255,255,255,0.06)', background: 'transparent' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#FF3131'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#444'; }}
           >
-            Reset Semua
+            Reset
           </button>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-10">
-        {/* Hero Section */}
+      <main className="max-w-4xl mx-auto px-4 py-12 relative">
+
+        {/* ── Hero ── */}
         <div className="text-center mb-12">
-          <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 text-sm font-medium">
-            Langkah 1 dari 2 — Input Pemain
+          <div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-widest mb-5"
+            style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: '#00D4FF' }}
+          >
+            <Zap className="w-3 h-3" />
+            Langkah 1 — Daftarkan Pemain
           </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 bg-gradient-to-r from-white via-blue-100 to-cyan-300 bg-clip-text text-transparent">
-            Daftarkan Pemain
-          </h2>
-          <p className="text-slate-400 max-w-md mx-auto">
-            Masukkan nama pemain satu per satu. Sistem akan otomatis mengacak dan membentuk tim 2v2.
+          <h1
+            className="text-4xl md:text-6xl font-black mb-4 leading-none tracking-tight"
+            style={{ color: '#F0F0F0' }}
+          >
+            Setup
+            <span className="ml-3" style={{ color: '#00D4FF', textShadow: '0 0 30px rgba(0,212,255,0.4)' }}>
+              Turnamen
+            </span>
+          </h1>
+          <p className="text-sm max-w-sm mx-auto" style={{ color: '#555' }}>
+            Masukkan nama pemain. Sistem akan acak & bentuk tim 2v2 secara otomatis.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Form Input */}
-          <div className="space-y-5">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-              <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-blue-400" />
-                Tambah Pemain
-              </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-              <div className="flex gap-3">
+          {/* ── Left: Form + Stats ── */}
+          <div className="space-y-4">
+
+            {/* Input card */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <UserPlus className="w-4 h-4" style={{ color: '#00D4FF' }} />
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#555' }}>
+                  Tambah Pemain
+                </span>
+              </div>
+
+              <div className="flex gap-2">
                 <input
                   type="text"
                   value={inputValue}
-                  onChange={(e) => {
-                    setInputValue(e.target.value);
-                    setError('');
-                  }}
+                  onChange={(e) => { setInputValue(e.target.value); setError(''); }}
                   onKeyDown={handleKeyDown}
                   placeholder="Nama pemain..."
                   maxLength={30}
-                  className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/50 transition-all"
                   disabled={isMaxed}
+                  className="flex-1 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: '#F0F0F0',
+                  }}
+                  onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(0,212,255,0.4)'; }}
+                  onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}
                 />
                 <button
                   onClick={handleAddPlayer}
                   disabled={isMaxed}
-                  className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 active:scale-95"
+                  className="px-5 py-3 rounded-xl font-bold text-sm transition-all shrink-0"
+                  style={{
+                    background: isMaxed ? '#1A1A1A' : 'rgba(0,212,255,0.12)',
+                    border: `1px solid ${isMaxed ? 'rgba(255,255,255,0.05)' : 'rgba(0,212,255,0.3)'}`,
+                    color: isMaxed ? '#333' : '#00D4FF',
+                  }}
+                  onMouseEnter={(e) => { if (!isMaxed) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,212,255,0.2)'; }}
+                  onMouseLeave={(e) => { if (!isMaxed) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,212,255,0.12)'; }}
                 >
-                  <UserPlus className="w-5 h-5" />
+                  <UserPlus className="w-4 h-4" />
                 </button>
               </div>
 
               {error && (
-                <p className="mt-2 text-sm text-red-400 flex items-center gap-1">
-                  <AlertTriangle className="w-4 h-4" />
+                <div className="flex items-center gap-1.5 mt-2.5 text-xs"
+                  style={{ color: '#FF3131' }}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                   {error}
-                </p>
+                </div>
               )}
 
-              {/* Statistik */}
-              <div className="mt-5 grid grid-cols-3 gap-3">
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2 mt-5">
                 {[
-                  { label: 'Pemain', value: totalPlayers, max: 16 },
-                  { label: 'Tim', value: Math.floor(totalPlayers / 2), suffix: '' },
-                  { label: 'Slot Tersisa', value: 16 - totalPlayers },
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{stat.label}</div>
+                  { label: 'Pemain', value: totalPlayers, accent: '#00D4FF' },
+                  { label: 'Tim',    value: Math.floor(totalPlayers / 2), accent: '#39FF14' },
+                  { label: 'Sisa',   value: 16 - totalPlayers, accent: '#FFB800' },
+                ].map((s) => (
+                  <div key={s.label}
+                    className="rounded-xl py-3 text-center"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                  >
+                    <div className="text-2xl font-black" style={{ color: s.accent }}>{s.value}</div>
+                    <div className="text-[10px] uppercase tracking-widest mt-0.5" style={{ color: '#3A3A3A' }}>{s.label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Validasi Warning */}
+            {/* Validation warning */}
             {msg && (
-              <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-                <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-                <p className="text-amber-300 text-sm">{msg}</p>
+              <div
+                className="flex items-start gap-3 rounded-xl px-4 py-3 text-sm"
+                style={{ background: 'rgba(255,184,0,0.06)', border: '1px solid rgba(255,184,0,0.2)', color: '#FFB800' }}
+              >
+                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                {msg}
               </div>
             )}
 
-            {/* Tombol Generate */}
+            {/* Generate button */}
             <button
               onClick={handleGenerate}
               disabled={!canGenerate}
               id="generate-bracket-btn"
-              className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
-                canGenerate
-                  ? 'bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:via-orange-400 hover:to-red-400 shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98]'
-                  : 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/10'
-              }`}
+              className="btn-neon-green w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-3"
             >
               <Shuffle className="w-5 h-5" />
               Generate Bracket
@@ -176,46 +237,73 @@ export default function PlayerInputPage() {
             </button>
 
             {canGenerate && (
-              <p className="text-center text-xs text-slate-500">
-                {totalPlayers} pemain akan diacak dan dibentuk {Math.floor(totalPlayers / 2)} tim
+              <p className="text-center text-[11px]" style={{ color: '#333' }}>
+                {totalPlayers} pemain → {Math.floor(totalPlayers / 2)} tim → acak otomatis
               </p>
             )}
           </div>
 
-          {/* Daftar Pemain */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-            <h3 className="text-sm font-semibold text-slate-300 mb-4">
-              Daftar Pemain ({totalPlayers}/16)
-            </h3>
+          {/* ── Right: Player list ── */}
+          <div
+            className="rounded-2xl p-5"
+            style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.06)',
+            }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#444' }}>
+                Daftar Pemain
+              </span>
+              <span className="text-[10px] font-mono" style={{ color: '#333' }}>
+                {totalPlayers} / 16
+              </span>
+            </div>
 
             {players.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
-                  <UserPlus className="w-8 h-8 text-slate-600" />
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  <UserPlus className="w-6 h-6" style={{ color: '#2A2A2A' }} />
                 </div>
-                <p className="text-slate-500 text-sm">Belum ada pemain</p>
-                <p className="text-slate-600 text-xs mt-1">Tambahkan minimal 4 pemain</p>
+                <p className="text-sm" style={{ color: '#333' }}>Belum ada pemain</p>
+                <p className="text-xs" style={{ color: '#222' }}>Tambahkan minimal 4 pemain</p>
               </div>
             ) : (
-              <ul className="space-y-2 max-h-[420px] overflow-y-auto pr-1 custom-scrollbar">
-                {players.map((player, idx) => (
-                  <li
-                    key={player.id}
-                    className="flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-3 group transition-all"
-                  >
-                    <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600/50 to-purple-600/50 flex items-center justify-center text-xs font-bold text-blue-300 shrink-0">
-                      {idx + 1}
-                    </span>
-                    <span className="flex-1 text-white font-medium">{player.name}</span>
-                    <button
-                      onClick={() => removePlayer(player.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 hover:text-red-400"
-                      aria-label={`Hapus ${player.name}`}
+              <ul className="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+                {players.map((player, idx) => {
+                  const bg = avatarColors[idx % avatarColors.length];
+                  return (
+                    <li
+                      key={player.id}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 group transition-all"
+                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLLIElement).style.background = 'rgba(255,255,255,0.05)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLLIElement).style.background = 'rgba(255,255,255,0.03)'; }}
                     >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </li>
-                ))}
+                      <span
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0"
+                        style={{ background: bg, color: '#F0F0F0' }}
+                      >
+                        {idx + 1}
+                      </span>
+                      <span className="flex-1 text-sm font-semibold" style={{ color: '#D0D0D0' }}>
+                        {player.name}
+                      </span>
+                      <button
+                        onClick={() => removePlayer(player.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg flex items-center justify-center"
+                        style={{ color: '#555' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#FF3131'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#555'; }}
+                        aria-label={`Hapus ${player.name}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
