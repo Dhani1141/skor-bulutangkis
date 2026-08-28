@@ -89,15 +89,48 @@ export const useTournamentStore = create<TournamentState>()(
         const { players } = get();
         if (players.length < 4 || players.length % 2 !== 0) return;
 
-        // Fisher-Yates shuffle
-        const shuffled = fisherYatesShuffle(players);
+        let availablePlayers = [...players];
+        let specialTeamPlayers: [Player, Player] | null = null;
 
-        // Bentuk tim (2 pemain per tim)
-        const teamGroups = chunkArray(shuffled, 2);
-        const teams: Team[] = teamGroups.map((group, idx) => ({
+        // Cek keberadaan "kunyuk" dan "diccy" (case-insensitive)
+        const kunyuk = availablePlayers.find(p => p.name.toLowerCase() === 'kunyuk');
+        const diccy = availablePlayers.find(p => p.name.toLowerCase() === 'diccy');
+
+        if (kunyuk && diccy && kunyuk.id !== diccy.id) {
+          // Pisahkan mereka dari array utama
+          specialTeamPlayers = [kunyuk, diccy];
+          availablePlayers = availablePlayers.filter(p => p.id !== kunyuk.id && p.id !== diccy.id);
+        }
+
+        // Fisher-Yates shuffle untuk sisa pemain
+        const shuffledPlayers = fisherYatesShuffle(availablePlayers);
+
+        // Bentuk grup (2 pemain per grup)
+        const teamGroups = chunkArray(shuffledPlayers, 2);
+        
+        // Buat array tim sementara (tanpa nama dulu)
+        const initialTeams: Team[] = teamGroups.map((group) => ({
           id: uuidv4(),
-          name: `Tim ${String.fromCharCode(65 + idx)}`, // Tim A, Tim B, dst.
+          name: '',
           players: [group[0], group[1]] as [Player, Player],
+        }));
+
+        // Masukkan tim khusus jika ada
+        if (specialTeamPlayers) {
+          initialTeams.push({
+            id: uuidv4(),
+            name: '',
+            players: specialTeamPlayers,
+          });
+        }
+
+        // Acak urutan tim agar posisi di bracket tetap adil
+        const shuffledTeams = fisherYatesShuffle(initialTeams);
+
+        // Berikan nama Tim A, Tim B, dst
+        const teams: Team[] = shuffledTeams.map((team, idx) => ({
+          ...team,
+          name: `Tim ${String.fromCharCode(65 + idx)}`
         }));
 
         // Generate bracket
