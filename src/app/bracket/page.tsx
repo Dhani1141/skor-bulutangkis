@@ -210,10 +210,10 @@ export default function BracketPage() {
             Legend
           </span>
           {[
-            { color: 'rgba(0,212,255,0.15)', border: 'rgba(0,212,255,0.4)',  glow: 'rgba(0,212,255,0.2)',  label: 'Siap dimainkan' },
-            { color: 'rgba(255,184,0,0.06)', border: 'rgba(255,184,0,0.5)',  glow: 'rgba(255,184,0,0.3)',  label: 'Sedang berlangsung' },
-            { color: 'rgba(57,255,20,0.05)', border: 'rgba(57,255,20,0.4)',  glow: 'rgba(57,255,20,0.2)',  label: 'Selesai' },
-            { color: 'rgba(255,255,255,0.02)', border: 'rgba(255,255,255,0.08)', glow: 'none',             label: 'Menunggu tim' },
+            { color: 'rgba(0,212,255,0.15)',  border: 'rgba(0,212,255,0.4)',  glow: 'rgba(0,212,255,0.2)',  label: 'Siap dimainkan' },
+            { color: 'rgba(255,184,0,0.08)',  border: 'rgba(255,184,0,0.6)',  glow: 'rgba(255,184,0,0.3)',  label: 'Sedang berlangsung' },
+            { color: 'rgba(57,255,20,0.05)',  border: 'rgba(57,255,20,0.5)',  glow: 'rgba(57,255,20,0.2)',  label: 'Selesai' },
+            { color: 'rgba(255,255,255,0.02)', border: 'rgba(255,255,255,0.06)', glow: 'none',              label: 'Menunggu tim' },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <div

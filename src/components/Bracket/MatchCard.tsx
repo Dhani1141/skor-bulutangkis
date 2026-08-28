@@ -19,35 +19,55 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
   const winnerIsA = isFinished && winner?.id === teamA?.id;
   const winnerIsB = isFinished && winner?.id === teamB?.id;
 
-  // Dynamic card class
+  // ── Border & glow per status ──────────────────────────────────────────
+  // Siap dimainkan → Cyan/Blue  (#00D4FF)
+  // Sedang berlangsung → Amber  (#FFB800)
+  // Selesai → Green             (#39FF14)
+  // Menunggu tim → Dimmed grey
+  const isPending  = !isOngoing && !isFinished && !!teamA && !!teamB; // siap dimainkan
+  const isWaiting  = !teamA || !teamB;                                // menunggu tim
+
+  const borderColor = isFinished
+    ? 'rgba(57,255,20,0.5)'
+    : isOngoing
+    ? 'rgba(255,184,0,0.6)'
+    : isPending
+    ? 'rgba(0,212,255,0.4)'     // CYAN untuk siap dimainkan
+    : 'rgba(255,255,255,0.06)'; // dim untuk menunggu
+
+  const boxShadow = isFinished
+    ? '0 0 16px rgba(57,255,20,0.25), 0 6px 24px rgba(0,0,0,0.7)'
+    : isOngoing
+    ? '0 0 16px rgba(255,184,0,0.3), 0 6px 24px rgba(0,0,0,0.7)'
+    : isPending
+    ? '0 0 12px rgba(0,212,255,0.15), 0 6px 24px rgba(0,0,0,0.7)' // subtle cyan glow
+    : '0 4px 16px rgba(0,0,0,0.5)';
+
   const cardClass = [
-    'relative w-48 rounded-2xl overflow-hidden text-left transition-all duration-250 group select-none',
-    'glass card-shadow',
-    isClickable
-      ? 'cursor-pointer hover:scale-[1.04] hover:border-[rgba(0,212,255,0.5)] hover:[box-shadow:0_0_24px_rgba(0,212,255,0.2),0_8px_32px_rgba(0,0,0,0.8)]'
-      : '',
-    isOngoing
-      ? 'match-active'
-      : isFinished
-      ? 'match-winner'
-      : 'opacity-60',
-    !teamA || !teamB ? 'opacity-40 cursor-not-allowed' : '',
+    'relative w-48 rounded-2xl overflow-hidden text-left group select-none',
+    'glass',
+    isOngoing   ? 'match-active'  : '',  // hanya amber pulse animation
+    isPending   ? 'cursor-pointer hover:scale-[1.04]' : '',
+    isWaiting   ? 'opacity-40 cursor-not-allowed' : '',
+    !isPending && !isOngoing && !isFinished && !isWaiting ? 'opacity-60' : '',
   ].join(' ');
 
   return (
     <button
       id={`match-${id}`}
-      onClick={isClickable ? onClick : undefined}
-      disabled={!isClickable}
+      onClick={isPending ? onClick : undefined}
+      disabled={!isPending}
       title={
-        !teamA || !teamB
-          ? 'Menunggu tim lain...'
-          : isFinished
-          ? 'Pertandingan selesai'
-          : 'Klik untuk buka papan skor'
+        isWaiting  ? 'Menunggu tim lain...'
+        : isFinished ? 'Pertandingan selesai'
+        : 'Klik untuk buka papan skor'
       }
       className={cardClass}
-      style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+      style={{
+        border: `1px solid ${borderColor}`,
+        boxShadow,
+        transition: 'all 0.2s ease',
+      }}
     >
       {/* Top status bar */}
       <div
