@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTournamentStore } from '@/store/tournamentStore';
-import { UserPlus, X, Trophy, AlertTriangle, ChevronRight, Shuffle } from 'lucide-react';
+import { UserPlus, X, AlertTriangle, ChevronRight, Shuffle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 // ── Komponen PlayerForm (Halaman Input Pemain) ─────────────────────────────
@@ -66,8 +66,8 @@ export default function PlayerInputPage() {
       <header className="border-b border-white/10 backdrop-blur-sm bg-white/5 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <Trophy className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30 shrink-0">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">Bulu Tangkis Pro</h1>

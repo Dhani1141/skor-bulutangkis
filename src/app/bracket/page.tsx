@@ -5,7 +5,7 @@ import { useTournamentStore } from '@/store/tournamentStore';
 import BracketView from '@/components/Bracket/BracketView';
 import ScoreboardModal from '@/components/Scoreboard/ScoreboardModal';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trophy, Users, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Users, RotateCcw } from 'lucide-react';
 
 export default function BracketPage() {
   const router = useRouter();
@@ -48,8 +48,8 @@ export default function BracketPage() {
             </button>
             <div className="h-4 w-px bg-white/20" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-md">
-                <Trophy className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
               <span className="font-bold text-white">Bracket Turnamen</span>
             </div>

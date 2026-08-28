@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   description:
     "Aplikasi manajemen turnamen bulu tangkis lokal dengan sistem Double Elimination Bracket. Input pemain, acak tim, dan catat skor dengan aturan BWF resmi.",
   keywords: ["bulu tangkis", "badminton", "turnamen", "double elimination", "bracket"],
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
