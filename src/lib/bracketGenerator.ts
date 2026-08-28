@@ -50,8 +50,24 @@ export function generateDoubleEliminationBracket(teams: Team[]): Match[] {
   if (n < 2) throw new Error('Minimal 2 tim diperlukan');
 
   const bracketSize = nextPowerOf2(n);
-  const padded: (Team | null)[] = [...teams];
-  while (padded.length < bracketSize) padded.push(null);
+  const numByes = bracketSize - n;
+  
+  // Distribute BYEs evenly so there are no "null vs null" matches
+  const padded: (Team | null)[] = [];
+  let teamIdx = 0;
+  const numMatchesRound1 = bracketSize / 2;
+  
+  for (let i = 0; i < numMatchesRound1; i++) {
+    // Slot A gets a real team
+    padded.push(teams[teamIdx++]);
+    
+    // Slot B gets a BYE if we still have BYEs to distribute, otherwise a real team
+    if (i < numByes) {
+      padded.push(null);
+    } else {
+      padded.push(teams[teamIdx++]);
+    }
+  }
 
   const matches: Match[] = [];
   let lbRound = 1;
@@ -66,8 +82,8 @@ export function generateDoubleEliminationBracket(teams: Team[]): Match[] {
     const m = makeMatch(`U1-${pos}`, 1, pos, 'upper', tA, tB);
 
     // Bye: auto-selesaikan jika salah satu tim null
-    if (tA && !tB) { m.winner = tA; m.status = 'finished'; }
-    else if (!tA && tB) { m.winner = tB; m.status = 'finished'; }
+    if (tA && !tB) { m.winner = tA; m.loser = null; m.status = 'finished'; }
+    else if (!tA && tB) { m.winner = tB; m.loser = null; m.status = 'finished'; }
 
     matches.push(m);
     ur1.push(m);

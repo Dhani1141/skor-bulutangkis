@@ -151,7 +151,11 @@ function UpperAndGrandFinal({ upperMatches, grandFinalMatches, allMatches, onMat
           : `Ronde ${i + 1}`,
       isGF: false,
     })),
-    ...gfRounds.map(() => ({ matches: grandFinalMatches, label: 'Grand Final', isGF: true })),
+    ...gfRounds.map((r, i) => ({ 
+      matches: r, 
+      label: i === 0 ? 'Grand Final' : 'True Grand Final', 
+      isGF: true 
+    })),
   ];
 
   if (allColumns.length === 0) return null;
