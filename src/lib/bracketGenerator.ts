@@ -1,336 +1,330 @@
 // ============================================================
-// bracketGenerator.ts – Generator Double Elimination Bracket
-// Mendukung 2–8 tim (4–16 pemain, 2 pemain per tim)
+// bracketGenerator.ts – Double Elimination Bracket Generator
+// Algoritma: alternating Consolidation + Infusion rounds
+//
+// Struktur Lower Bracket yang BENAR untuk N tim:
+//   LR1 (consolidation): losers UR1 main sesama
+//   LR2 (infusion):      UR2 losers vs LR1 survivors
+//   LR3 (consolidation): LR2 survivors main sesama (jika lebih dari 1)
+//   LR4 (infusion):      UR3 losers vs LR3 survivors
+//   ... dst sampai 1 survivor → Lower Final
+//   Grand Final: Upper Final winner vs Lower Final winner
 // ============================================================
 
-import { Match, Team } from '@/types/tournament';
+import { Match, Team, BracketType, TeamSlot } from '@/types/tournament';
 
-/**
- * Menghasilkan struktur Double Elimination Bracket lengkap.
- *
- * Struktur DE Bracket:
- * ┌─────────────────────────────────────────────────────┐
- * │  UPPER BRACKET                                      │
- * │  Round 1 → Round 2 → ... → Upper Final             │
- * │             ↓ loser                                 │
- * │  LOWER BRACKET                                      │
- * │  LR1 → LR2 → ... → Lower Final                    │
- * │                        ↓ winner                     │
- * │  GRAND FINAL (Upper champ vs Lower champ)           │
- * └─────────────────────────────────────────────────────┘
- *
- * @param teams - Array tim yang sudah diacak
- * @returns Array Match yang merepresentasikan seluruh bracket
- */
+// ── Helper: buat satu match object ────────────────────────────────────────
+
+function makeMatch(
+  id: string,
+  round: number,
+  position: number,
+  bracket: BracketType,
+  teamA: Team | null,
+  teamB: Team | null,
+): Match {
+  return {
+    id, round, position, bracket,
+    teamA, teamB,
+    scoreA: 0, scoreB: 0,
+    winner: null, loser: null,
+    status: 'pending',
+    nextMatchWinnerId: null, nextWinnerSlot: null,
+    nextMatchLoserId:  null, nextLoserSlot:  null,
+  };
+}
+
+// ── Helper: pangkat 2 terdekat ≥ n ────────────────────────────────────────
+
+function nextPowerOf2(n: number): number {
+  if (n <= 1) return 2;
+  return Math.pow(2, Math.ceil(Math.log2(n)));
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// MAIN GENERATOR
+// ══════════════════════════════════════════════════════════════════════════
+
 export function generateDoubleEliminationBracket(teams: Team[]): Match[] {
   const n = teams.length;
   if (n < 2) throw new Error('Minimal 2 tim diperlukan');
 
-  // Pad jumlah tim ke pangkat 2 terdekat (untuk bracket yang bersih)
   const bracketSize = nextPowerOf2(n);
-  const paddedTeams: (Team | null)[] = [...teams];
-  while (paddedTeams.length < bracketSize) paddedTeams.push(null);
+  const padded: (Team | null)[] = [...teams];
+  while (padded.length < bracketSize) padded.push(null);
 
   const matches: Match[] = [];
+  let lbRound = 1;
 
-  // ── UPPER BRACKET ─────────────────────────────────────────────────────────
-  // Ronde 1 Upper: pasangkan tim (1vs8, 2vs7, 3vs6, 4vs5 untuk bracket 8 tim)
-  // Untuk simplisitas kita pakai pasangan berurutan: [0,1], [2,3], [4,5], [6,7]
-  const upperR1Matches: Match[] = [];
+  // ── Upper Bracket Round 1 ──────────────────────────────────────────────
+
+  const ur1: Match[] = [];
   for (let i = 0; i < bracketSize; i += 2) {
-    const m: Match = {
-      id: `U1-${Math.floor(i / 2) + 1}`,
-      round: 1,
-      position: Math.floor(i / 2) + 1,
-      bracket: 'upper',
-      teamA: paddedTeams[i] ?? null,
-      teamB: paddedTeams[i + 1] ?? null,
-      scoreA: 0,
-      scoreB: 0,
-      winner: null,
-      loser: null,
-      status: (paddedTeams[i] !== null && paddedTeams[i + 1] !== null) ? 'pending' : 'pending',
-      nextMatchWinnerId: null,
-      nextWinnerSlot: null,
-      nextMatchLoserId: null,
-      nextLoserSlot: null,
-    };
-    // Auto-advance jika salah satu slot null (bye)
-    if (paddedTeams[i] === null && paddedTeams[i + 1] !== null) {
-      m.winner = paddedTeams[i + 1];
-      m.status = 'finished';
-    } else if (paddedTeams[i] !== null && paddedTeams[i + 1] === null) {
-      m.winner = paddedTeams[i];
-      m.status = 'finished';
-    }
+    const tA = padded[i];
+    const tB = padded[i + 1] ?? null;
+    const pos = i / 2 + 1;
+    const m = makeMatch(`U1-${pos}`, 1, pos, 'upper', tA, tB);
+
+    // Bye: auto-selesaikan jika salah satu tim null
+    if (tA && !tB) { m.winner = tA; m.status = 'finished'; }
+    else if (!tA && tB) { m.winner = tB; m.status = 'finished'; }
+
     matches.push(m);
-    upperR1Matches.push(m);
+    ur1.push(m);
   }
 
-  // Ronde-ronde Upper Bracket berikutnya
-  let prevUpperRound = upperR1Matches;
-  let upperRoundNum = 2;
-  const upperRounds: Match[][] = [upperR1Matches];
+  // ── Upper Bracket ronde berikutnya ────────────────────────────────────
 
-  while (prevUpperRound.length > 1) {
-    const nextRoundMatches: Match[] = [];
-    for (let i = 0; i < prevUpperRound.length; i += 2) {
-      const m: Match = {
-        id: `U${upperRoundNum}-${Math.floor(i / 2) + 1}`,
-        round: upperRoundNum,
-        position: Math.floor(i / 2) + 1,
-        bracket: 'upper',
-        teamA: null,
-        teamB: null,
-        scoreA: 0,
-        scoreB: 0,
-        winner: null,
-        loser: null,
-        status: 'pending',
-        nextMatchWinnerId: null,
-        nextWinnerSlot: null,
-        nextMatchLoserId: null,
-        nextLoserSlot: null,
-      };
+  const upperRounds: Match[][] = [ur1];
+  let prevUR   = ur1;
+  let ubRoundN = 2;
+
+  while (prevUR.length > 1) {
+    const round: Match[] = [];
+    for (let i = 0; i < prevUR.length; i += 2) {
+      const pos = i / 2 + 1;
+      const m = makeMatch(`U${ubRoundN}-${pos}`, ubRoundN, pos, 'upper', null, null);
       matches.push(m);
-      nextRoundMatches.push(m);
+      round.push(m);
 
-      // Hubungkan ronde sebelumnya ke ronde ini
-      prevUpperRound[i].nextMatchWinnerId = m.id;
-      prevUpperRound[i].nextWinnerSlot = 'A';
-      if (i + 1 < prevUpperRound.length) {
-        prevUpperRound[i + 1].nextMatchWinnerId = m.id;
-        prevUpperRound[i + 1].nextWinnerSlot = 'B';
+      prevUR[i].nextMatchWinnerId = m.id;
+      prevUR[i].nextWinnerSlot   = 'A';
+      if (i + 1 < prevUR.length) {
+        prevUR[i + 1].nextMatchWinnerId = m.id;
+        prevUR[i + 1].nextWinnerSlot   = 'B';
       }
     }
-    upperRounds.push(nextRoundMatches);
-    prevUpperRound = nextRoundMatches;
-    upperRoundNum++;
+    upperRounds.push(round);
+    prevUR = round;
+    ubRoundN++;
   }
 
-  // prevUpperRound[0] adalah Upper Final (pemenang masuk Grand Final)
-  const upperFinal = prevUpperRound[0];
+  const upperFinal = prevUR[0];
 
-  // ── LOWER BRACKET ─────────────────────────────────────────────────────────
-  // LR1: pecundang dari Upper R1 masuk ke LR1
-  // Untuk bracketSize=8: 4 match upper R1 → 4 pecundang → 2 match LR1
-  // Setiap ronde LB:
-  //   Ronde ganjil (L1, L3, ...): pecundang dari UB ronde berikutnya vs survivor LB
-  //   Ronde genap (L2, L4, ...): survivor LB vs survivor LB
+  // ── Lower Bracket ──────────────────────────────────────────────────────
+  // LR1 (Consolidation): losers dari UR1 main sesama
 
-  const lowerRounds: Match[][] = [];
-  let lowerRoundNum = 1;
-
-  // LR1: pecundang Upper R1 main sesama
-  const lbR1Matches: Match[] = [];
-  for (let i = 0; i < upperR1Matches.length; i += 2) {
-    const m: Match = {
-      id: `L${lowerRoundNum}-${Math.floor(i / 2) + 1}`,
-      round: lowerRoundNum,
-      position: Math.floor(i / 2) + 1,
-      bracket: 'lower',
-      teamA: null, // diisi oleh pecundang U1-i
-      teamB: null, // diisi oleh pecundang U1-(i+1)
-      scoreA: 0,
-      scoreB: 0,
-      winner: null,
-      loser: null,
-      status: 'pending',
-      nextMatchWinnerId: null,
-      nextWinnerSlot: null,
-      nextMatchLoserId: null,
-      nextLoserSlot: null,
-    };
+  const lr1: Match[] = [];
+  for (let i = 0; i < ur1.length; i += 2) {
+    const pos = i / 2 + 1;
+    const m = makeMatch(`L${lbRound}-${pos}`, lbRound, pos, 'lower', null, null);
     matches.push(m);
-    lbR1Matches.push(m);
+    lr1.push(m);
 
-    // Routing pecundang dari Upper R1 → LR1
-    upperR1Matches[i].nextMatchLoserId = m.id;
-    upperR1Matches[i].nextLoserSlot = 'A';
-    if (i + 1 < upperR1Matches.length) {
-      upperR1Matches[i + 1].nextMatchLoserId = m.id;
-      upperR1Matches[i + 1].nextLoserSlot = 'B';
+    ur1[i].nextMatchLoserId = m.id;
+    ur1[i].nextLoserSlot   = 'A';
+    if (i + 1 < ur1.length) {
+      ur1[i + 1].nextMatchLoserId = m.id;
+      ur1[i + 1].nextLoserSlot   = 'B';
     }
   }
-  lowerRounds.push(lbR1Matches);
-  lowerRoundNum++;
+  lbRound++;
+  let prevLB = lr1;
 
-  // Ronde LB berikutnya bergantian:
-  // - Ronde genap: survivor LB vs survivor LB (tidak ada infus dari UB)
-  // - Ronde ganjil (≥3): pecundang dari UB ronde selanjutnya vs survivor LB
-  let prevLBRound = lbR1Matches;
-  let upperRoundIdx = 1; // index ronde upper berikutnya yang akan drop pecundang ke LB
+  // Alternating Infusion + Consolidation untuk sisa ronde Upper
+  for (let ubIdx = 1; ubIdx < upperRounds.length; ubIdx++) {
+    const ubRound = upperRounds[ubIdx];
 
-  while (prevLBRound.length > 1 || (upperRoundIdx < upperRounds.length - 1)) {
-    // LR genap: survivor LB vs survivor LB
-    const evenMatches: Match[] = [];
-    for (let i = 0; i < prevLBRound.length; i += 2) {
-      const m: Match = {
-        id: `L${lowerRoundNum}-${Math.floor(i / 2) + 1}`,
-        round: lowerRoundNum,
-        position: Math.floor(i / 2) + 1,
-        bracket: 'lower',
-        teamA: null,
-        teamB: null,
-        scoreA: 0,
-        scoreB: 0,
-        winner: null,
-        loser: null,
-        status: 'pending',
-        nextMatchWinnerId: null,
-        nextWinnerSlot: null,
-        nextMatchLoserId: null,
-        nextLoserSlot: null,
-      };
+    // ── Infusion: UR losers bergabung dengan LB survivors ──
+    const infusion: Match[] = [];
+    for (let i = 0; i < prevLB.length; i++) {
+      const m = makeMatch(`L${lbRound}-${i + 1}`, lbRound, i + 1, 'lower', null, null);
       matches.push(m);
-      evenMatches.push(m);
-      prevLBRound[i].nextMatchWinnerId = m.id;
-      prevLBRound[i].nextWinnerSlot = 'A';
-      if (i + 1 < prevLBRound.length) {
-        prevLBRound[i + 1].nextMatchWinnerId = m.id;
-        prevLBRound[i + 1].nextWinnerSlot = 'B';
+      infusion.push(m);
+
+      // LB survivor → slot A
+      prevLB[i].nextMatchWinnerId = m.id;
+      prevLB[i].nextWinnerSlot   = 'A';
+
+      // UR loser → slot B
+      if (i < ubRound.length) {
+        ubRound[i].nextMatchLoserId = m.id;
+        ubRound[i].nextLoserSlot   = 'B';
       }
     }
-    lowerRounds.push(evenMatches);
-    lowerRoundNum++;
-    prevLBRound = evenMatches;
+    lbRound++;
+    prevLB = infusion;
 
-    if (prevLBRound.length <= 1) break;
-
-    // LR ganjil (≥3): pecundang dari UB ronde berikutnya masuk
-    if (upperRoundIdx < upperRounds.length - 1) {
-      const ubRoundToDrop = upperRounds[upperRoundIdx];
-      upperRoundIdx++;
-      const oddMatches: Match[] = [];
-      for (let i = 0; i < prevLBRound.length; i++) {
-        const m: Match = {
-          id: `L${lowerRoundNum}-${i + 1}`,
-          round: lowerRoundNum,
-          position: i + 1,
-          bracket: 'lower',
-          teamA: null, // survivor LB
-          teamB: null, // pecundang UB
-          scoreA: 0,
-          scoreB: 0,
-          winner: null,
-          loser: null,
-          status: 'pending',
-          nextMatchWinnerId: null,
-          nextWinnerSlot: null,
-          nextMatchLoserId: null,
-          nextLoserSlot: null,
-        };
+    // ── Consolidation: LB survivors main sesama
+    //    (hanya jika masih ada ronde UB lagi setelah ini)
+    if (ubIdx < upperRounds.length - 1 && prevLB.length > 1) {
+      const consol: Match[] = [];
+      for (let i = 0; i < prevLB.length; i += 2) {
+        const pos = i / 2 + 1;
+        const m = makeMatch(`L${lbRound}-${pos}`, lbRound, pos, 'lower', null, null);
         matches.push(m);
-        oddMatches.push(m);
-        prevLBRound[i].nextMatchWinnerId = m.id;
-        prevLBRound[i].nextWinnerSlot = 'A';
-        if (i < ubRoundToDrop.length) {
-          ubRoundToDrop[i].nextMatchLoserId = m.id;
-          ubRoundToDrop[i].nextLoserSlot = 'B';
+        consol.push(m);
+
+        prevLB[i].nextMatchWinnerId = m.id;
+        prevLB[i].nextWinnerSlot   = 'A';
+        if (i + 1 < prevLB.length) {
+          prevLB[i + 1].nextMatchWinnerId = m.id;
+          prevLB[i + 1].nextWinnerSlot   = 'B';
         }
       }
-      lowerRounds.push(oddMatches);
-      lowerRoundNum++;
-      prevLBRound = oddMatches;
+      lbRound++;
+      prevLB = consol;
     }
   }
 
-  // prevLBRound[0] adalah Lower Final (pemenang masuk Grand Final)
-  const lowerFinal = prevLBRound[0];
+  const lowerFinal = prevLB[0];
 
-  // ── GRAND FINAL ───────────────────────────────────────────────────────────
-  const grandFinal: Match = {
-    id: 'GF',
-    round: 1,
-    position: 1,
-    bracket: 'grand_final',
-    teamA: null, // pemenang Upper Final
-    teamB: null, // pemenang Lower Final
-    scoreA: 0,
-    scoreB: 0,
-    winner: null,
-    loser: null,
-    status: 'pending',
-    nextMatchWinnerId: null,
-    nextWinnerSlot: null,
-    nextMatchLoserId: null,
-    nextLoserSlot: null,
-  };
-  matches.push(grandFinal);
+  // ── Grand Final ────────────────────────────────────────────────────────
 
-  upperFinal.nextMatchWinnerId = grandFinal.id;
-  upperFinal.nextWinnerSlot = 'A';
-  lowerFinal.nextMatchWinnerId = grandFinal.id;
-  lowerFinal.nextWinnerSlot = 'B';
+  const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
+  matches.push(gf);
 
-  // Jika hanya 2 tim: skip ronde-ronde dan langsung GF
-  // (kasus ini sudah dihandle karena Upper R1 dengan 1 match
-  // akan langsung menjadi Upper Final, dan LB tidak ada)
+  upperFinal.nextMatchWinnerId = gf.id;
+  upperFinal.nextWinnerSlot   = 'A';
+  lowerFinal.nextMatchWinnerId = gf.id;
+  lowerFinal.nextWinnerSlot   = 'B';
 
-  // Populate tim yang sudah pasti (dari bye) ke match berikutnya
-  applyAutoAdvance(matches);
+  // Apply auto-advance awal (untuk bye matches)
+  applyInitialAutoAdvance(matches);
 
   return matches;
 }
 
-/** Menerapkan auto-advance untuk match dengan bye (salah satu tim null) */
-function applyAutoAdvance(matches: Match[]): void {
-  const matchMap = new Map(matches.map((m) => [m.id, m]));
+// ══════════════════════════════════════════════════════════════════════════
+// AUTO-ADVANCE HELPERS
+// ══════════════════════════════════════════════════════════════════════════
 
-  for (const match of matches) {
-    if (match.status === 'finished' && match.winner) {
-      advanceTeam(matchMap, match);
+/** Auto-advance awal saat bracket di-generate (hanya untuk bye matches) */
+function applyInitialAutoAdvance(matches: Match[]): void {
+  const map = new Map(matches.map(m => [m.id, m]));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const m of Array.from(map.values())) {
+      if (m.status === 'finished' && m.winner) {
+        advanceTeam(map, m);
+        changed = true;
+      }
+    }
+    // Stop setelah satu pass penuh jika tidak ada perubahan baru
+    changed = false;
+    for (const m of Array.from(map.values())) {
+      if (m.status === 'finished' && m.winner && m.nextMatchWinnerId) {
+        const next = map.get(m.nextMatchWinnerId);
+        if (next) {
+          const slot = m.nextWinnerSlot;
+          if ((slot === 'A' && next.teamA === null) || (slot === 'B' && next.teamB === null)) {
+            advanceTeam(map, m);
+            changed = true;
+          }
+        }
+      }
     }
   }
 }
 
-/** Memindahkan pemenang/pecundang ke match berikutnya */
+// ── advanceTeam: pindahkan pemenang/pecundang ke match berikutnya ─────────
+
 export function advanceTeam(
-  matchMap: Map<string, Match>,
-  finishedMatch: Match
+  map: Map<string, Match>,
+  finished: Match,
 ): void {
-  const { winner, loser, nextMatchWinnerId, nextWinnerSlot, nextMatchLoserId, nextLoserSlot } =
-    finishedMatch;
+  const { winner, loser, nextMatchWinnerId, nextWinnerSlot, nextMatchLoserId, nextLoserSlot } = finished;
 
   if (winner && nextMatchWinnerId) {
-    const nextWinMatch = matchMap.get(nextMatchWinnerId);
-    if (nextWinMatch) {
-      if (nextWinnerSlot === 'A') nextWinMatch.teamA = winner;
-      else nextWinMatch.teamB = winner;
-      // Ubah status jadi pending jika kedua tim sudah ada
-      if (nextWinMatch.teamA && nextWinMatch.teamB) nextWinMatch.status = 'pending';
+    const next = map.get(nextMatchWinnerId);
+    if (next && next.status !== 'finished') {
+      if (nextWinnerSlot === 'A') next.teamA = winner;
+      else                        next.teamB = winner;
+      if (next.teamA && next.teamB) next.status = 'pending';
     }
   }
 
   if (loser && nextMatchLoserId) {
-    const nextLoseMatch = matchMap.get(nextMatchLoserId);
-    if (nextLoseMatch) {
-      if (nextLoserSlot === 'A') nextLoseMatch.teamA = loser;
-      else nextLoseMatch.teamB = loser;
-      if (nextLoseMatch.teamA && nextLoseMatch.teamB) nextLoseMatch.status = 'pending';
+    const next = map.get(nextMatchLoserId);
+    if (next && next.status !== 'finished') {
+      if (nextLoserSlot === 'A') next.teamA = loser;
+      else                       next.teamB = loser;
+      if (next.teamA && next.teamB) next.status = 'pending';
     }
   }
 }
 
-/** Mengembalikan pangkat 2 terdekat yang ≥ n */
-function nextPowerOf2(n: number): number {
-  if (n <= 1) return 1;
-  return Math.pow(2, Math.ceil(Math.log2(n)));
+// ── findSlotSource: cari match yang mengisi slot tertentu ─────────────────
+
+export function findSlotSource(
+  map: Map<string, Match>,
+  targetId: string,
+  slot: TeamSlot,
+): Match | null {
+  for (const m of map.values()) {
+    if (m.nextMatchWinnerId === targetId && m.nextWinnerSlot === slot) return m;
+    if (m.nextMatchLoserId  === targetId && m.nextLoserSlot  === slot) return m;
+  }
+  return null;
 }
 
-/** Mengekstrak ronde-ronde dari array match berdasarkan bracket type */
+// ── runAutoAdvanceCleanup: auto-advance match dengan 1 tim saja
+//    ketika slot kosong dipastikan tidak akan pernah terisi (bye/walkover)
+//
+//    Contoh: L1-1 (Tim A vs null) → null-nya dari bye U1-2 yang
+//    sudah finish tanpa loser → Tim A langsung menang L1-1 otomatis
+// ─────────────────────────────────────────────────────────────────────────
+
+export function runAutoAdvanceCleanup(map: Map<string, Match>): boolean {
+  let changed = false;
+
+  for (const m of Array.from(map.values())) {
+    if (m.status === 'finished') continue;
+
+    const hasA = m.teamA !== null;
+    const hasB = m.teamB !== null;
+    if (!hasA && !hasB) continue; // Kedua slot kosong – belum waktunya
+
+    if (hasA && !hasB) {
+      // Cek apakah slot B tidak akan pernah terisi
+      const src = findSlotSource(map, m.id, 'B');
+      if (src && src.status === 'finished') {
+        const isByeLoser  = src.nextMatchLoserId  === m.id && src.nextLoserSlot  === 'B' && src.loser  === null;
+        const isByeWinner = src.nextMatchWinnerId === m.id && src.nextWinnerSlot === 'B' && src.winner === null;
+        if (isByeLoser || isByeWinner) {
+          m.winner = m.teamA!;
+          m.loser  = null;
+          m.status = 'finished';
+          advanceTeam(map, m);
+          changed = true;
+        }
+      }
+    }
+
+    if (!hasA && hasB) {
+      const src = findSlotSource(map, m.id, 'A');
+      if (src && src.status === 'finished') {
+        const isByeLoser  = src.nextMatchLoserId  === m.id && src.nextLoserSlot  === 'A' && src.loser  === null;
+        const isByeWinner = src.nextMatchWinnerId === m.id && src.nextWinnerSlot === 'A' && src.winner === null;
+        if (isByeLoser || isByeWinner) {
+          m.winner = m.teamB!;
+          m.loser  = null;
+          m.status = 'finished';
+          advanceTeam(map, m);
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return changed;
+}
+
+// ── groupMatchesByRound ────────────────────────────────────────────────────
+
 export function groupMatchesByRound(
   matches: Match[],
-  bracket: 'upper' | 'lower' | 'grand_final'
+  bracket: 'upper' | 'lower' | 'grand_final',
 ): Match[][] {
-  const filtered = matches.filter((m) => m.bracket === bracket);
-  const maxRound = Math.max(...filtered.map((m) => m.round), 0);
+  const filtered = matches.filter(m => m.bracket === bracket);
+  const maxRound = Math.max(...filtered.map(m => m.round), 0);
   const rounds: Match[][] = [];
   for (let r = 1; r <= maxRound; r++) {
-    const roundMatches = filtered
-      .filter((m) => m.round === r)
+    const round = filtered
+      .filter(m => m.round === r)
       .sort((a, b) => a.position - b.position);
-    if (roundMatches.length > 0) rounds.push(roundMatches);
+    if (round.length > 0) rounds.push(round);
   }
   return rounds;
 }

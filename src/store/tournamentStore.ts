@@ -7,7 +7,7 @@ import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { Player, Team, Match, TournamentPhase } from '@/types/tournament';
 import { fisherYatesShuffle, chunkArray } from '@/lib/shuffleUtils';
-import { generateDoubleEliminationBracket, advanceTeam } from '@/lib/bracketGenerator';
+import { generateDoubleEliminationBracket, advanceTeam, runAutoAdvanceCleanup } from '@/lib/bracketGenerator';
 import { checkWinner } from '@/lib/scoringLogic';
 
 // ── State Interface ────────────────────────────────────────────────────────
@@ -191,6 +191,12 @@ export const useTournamentStore = create<TournamentState>()(
         // Advance pemenang & pecundang ke match berikutnya
         const matchMap = new Map(matches.map((m) => [m.id, { ...m }]));
         advanceTeam(matchMap, finishedMatch);
+
+        // Run auto-advance cleanup untuk bye/walkover secara iteratif sampai tidak ada yang maju lagi
+        let cleanupNeeded = true;
+        while (cleanupNeeded) {
+          cleanupNeeded = runAutoAdvanceCleanup(matchMap);
+        }
 
         set({
           matches: Array.from(matchMap.values()),
