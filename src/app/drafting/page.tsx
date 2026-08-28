@@ -39,7 +39,10 @@ export default function DraftingPage() {
         router.push('/bracket');
       }, 1200);
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        autoCompletingRef.current = false;
+      };
     }
   }, [phase, remainingPlayers, currentTeam.length, drawPlayer, finalizeDrafting, router]);
 
