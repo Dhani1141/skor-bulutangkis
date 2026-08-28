@@ -30,12 +30,15 @@ export default function SpinWheel({ players, targetPlayerId, onFinish }: SpinWhe
         containerRef.current.style.transition = 'none';
         containerRef.current.style.transform = `translateY(0px)`;
         
-        // Force reflow
-        void containerRef.current.offsetHeight;
-        
-        // Spin!
-        containerRef.current.style.transition = 'transform 3.5s cubic-bezier(0.1, 0.7, 0.1, 1)';
-        containerRef.current.style.transform = `translateY(-${targetScroll}px)`;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (containerRef.current) {
+              // Spin!
+              containerRef.current.style.transition = 'transform 3.5s cubic-bezier(0.1, 0.7, 0.1, 1)';
+              containerRef.current.style.transform = `translateY(-${targetScroll}px)`;
+            }
+          });
+        });
         
         setTimeout(() => {
           onFinish();

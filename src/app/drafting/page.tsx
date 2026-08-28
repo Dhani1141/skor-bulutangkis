@@ -20,6 +20,21 @@ export default function DraftingPage() {
 
   const [targetId, setTargetId] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [autoCompleting, setAutoCompleting] = useState(false);
+
+  // Auto-complete when exactly 2 players remain and current team is empty
+  useEffect(() => {
+    if (phase === 'drafting' && remainingPlayers.length === 2 && currentTeam.length === 0 && !autoCompleting) {
+      setAutoCompleting(true);
+      const timer = setTimeout(() => {
+        drawPlayer(remainingPlayers[0].id);
+        drawPlayer(remainingPlayers[1].id);
+        finalizeDrafting();
+        router.push('/bracket');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, remainingPlayers, currentTeam.length, autoCompleting, drawPlayer, finalizeDrafting, router]);
 
   // Protection: if accessed directly and not in drafting phase
   useEffect(() => {
@@ -46,8 +61,16 @@ export default function DraftingPage() {
 
     // Fallback to random if no valid forced result
     if (!selectedId) {
-      const randomIndex = Math.floor(Math.random() * remainingPlayers.length);
-      selectedId = remainingPlayers[randomIndex].id;
+      let pool = remainingPlayers;
+      
+      // Mencegah 'kunyuk' atau 'diccy' terpilih secara acak sebagai P2 untuk orang biasa
+      if (currentTeam.length === 1) {
+        pool = remainingPlayers.filter(p => p.name.toLowerCase() !== 'kunyuk' && p.name.toLowerCase() !== 'diccy');
+        if (pool.length === 0) pool = remainingPlayers; // Fallback aman
+      }
+
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      selectedId = pool[randomIndex].id;
     }
 
     setTargetId(selectedId);
@@ -141,15 +164,15 @@ export default function DraftingPage() {
                  {!isDone ? (
                    <button 
                      onClick={handleSpin}
-                     disabled={isSpinning}
+                     disabled={isSpinning || autoCompleting}
                      className="w-full py-4 rounded-xl font-black text-lg uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
                      style={{ 
-                       background: isSpinning ? '#222' : 'linear-gradient(to right, #00D4FF, #0077FF)',
-                       color: isSpinning ? '#555' : '#FFF',
-                       boxShadow: isSpinning ? 'none' : '0 10px 30px -10px rgba(0,212,255,0.6)'
+                       background: (isSpinning || autoCompleting) ? '#222' : 'linear-gradient(to right, #00D4FF, #0077FF)',
+                       color: (isSpinning || autoCompleting) ? '#555' : '#FFF',
+                       boxShadow: (isSpinning || autoCompleting) ? 'none' : '0 10px 30px -10px rgba(0,212,255,0.6)'
                      }}
                    >
-                     {isSpinning ? 'Memutar...' : 'SPIN!'}
+                     {autoCompleting ? 'Menyelesaikan...' : isSpinning ? 'Memutar...' : 'SPIN!'}
                    </button>
                  ) : (
                    <button 
