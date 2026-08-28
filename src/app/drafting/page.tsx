@@ -21,24 +21,33 @@ export default function DraftingPage() {
   const [targetId, setTargetId] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [autoCompleting, setAutoCompleting] = useState(false);
+  const autoCompletingRef = useRef(false);
 
   // Auto-complete when exactly 2 players remain and current team is empty
   useEffect(() => {
-    if (phase === 'drafting' && remainingPlayers.length === 2 && currentTeam.length === 0 && !autoCompleting) {
+    if (phase === 'drafting' && remainingPlayers.length === 2 && currentTeam.length === 0 && !autoCompletingRef.current) {
+      autoCompletingRef.current = true;
       setAutoCompleting(true);
+      
+      const p1 = remainingPlayers[0].id;
+      const p2 = remainingPlayers[1].id;
+
       const timer = setTimeout(() => {
-        drawPlayer(remainingPlayers[0].id);
-        drawPlayer(remainingPlayers[1].id);
+        drawPlayer(p1);
+        drawPlayer(p2);
         finalizeDrafting();
         router.push('/bracket');
-      }, 1000);
+      }, 1200);
+      
       return () => clearTimeout(timer);
     }
-  }, [phase, remainingPlayers, currentTeam.length, autoCompleting, drawPlayer, finalizeDrafting, router]);
+  }, [phase, remainingPlayers, currentTeam.length, drawPlayer, finalizeDrafting, router]);
 
   // Protection: if accessed directly and not in drafting phase
   useEffect(() => {
-    if (phase !== 'drafting' && phase !== 'input') {
+    if (phase === 'bracket') {
+      router.push('/bracket');
+    } else if (phase !== 'drafting' && phase !== 'input') {
       router.push('/');
     }
   }, [phase, router]);
