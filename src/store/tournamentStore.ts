@@ -21,11 +21,21 @@ interface TournamentState {
   champion: Team | null;
   activeMatchId: string | null;
 
+  // Drafting Data
+  remainingPlayers: Player[];
+  currentTeam: Player[];
+  finalTeams: Team[];
+  forcedNextResult: string;
+
   // Actions – Input Phase
   addPlayer: (name: string) => void;
   removePlayer: (id: string) => void;
   updatePlayer: (id: string, name: string) => void;
-  generateBracket: () => void;
+  
+  // Actions – Drafting Phase
+  startDrafting: () => void;
+  drawPlayer: (playerId: string) => void;
+  finalizeDrafting: () => void;
 
   // Actions – Bracket Phase
   openMatch: (matchId: string) => void;
@@ -46,6 +56,12 @@ export const useTournamentStore = create<TournamentState>()(
       // ── Initial State ────────────────────────────────────────────────────
       phase: 'input',
       players: [],
+      
+      remainingPlayers: [],
+      currentTeam: [],
+      finalTeams: [],
+      forcedNextResult: '',
+
       teams: [],
       matches: [],
       champion: null,
@@ -78,54 +94,67 @@ export const useTournamentStore = create<TournamentState>()(
         }));
       },
 
-      /**
-       * Generate bracket:
-       * 1. Validasi jumlah pemain (harus genap, minimal 4)
-       * 2. Acak pemain dengan Fisher-Yates
-       * 3. Bentuk tim (setiap 2 pemain = 1 tim)
-       * 4. Generate Double Elimination Bracket
-       */
-      generateBracket: () => {
+      startDrafting: () => {
         const { players } = get();
         if (players.length < 4 || players.length % 2 !== 0) return;
 
-        let availablePlayers = [...players];
-        let specialTeamPlayers: [Player, Player] | null = null;
+        // Shuffle remaining players so the wheel has a randomized base
+        const shuffled = fisherYatesShuffle([...players]);
 
-        // Cek keberadaan "kunyuk" dan "diccy" (case-insensitive)
-        const kunyuk = availablePlayers.find(p => p.name.toLowerCase() === 'kunyuk');
-        const diccy = availablePlayers.find(p => p.name.toLowerCase() === 'diccy');
+        set({
+          phase: 'drafting',
+          remainingPlayers: shuffled,
+          currentTeam: [],
+          finalTeams: [],
+          forcedNextResult: '',
+        });
+      },
 
-        if (kunyuk && diccy && kunyuk.id !== diccy.id) {
-          // Pisahkan mereka dari array utama
-          specialTeamPlayers = [kunyuk, diccy];
-          availablePlayers = availablePlayers.filter(p => p.id !== kunyuk.id && p.id !== diccy.id);
-        }
+      drawPlayer: (playerId: string) => {
+        const state = get();
+        const player = state.remainingPlayers.find(p => p.id === playerId);
+        if (!player) return;
 
-        // Fisher-Yates shuffle untuk sisa pemain
-        const shuffledPlayers = fisherYatesShuffle(availablePlayers);
+        const newRemaining = state.remainingPlayers.filter(p => p.id !== playerId);
+        const newCurrentTeam = [...state.currentTeam, player];
+        const newFinalTeams = [...state.finalTeams];
+        let newForcedResult = '';
 
-        // Bentuk grup (2 pemain per grup)
-        const teamGroups = chunkArray(shuffledPlayers, 2);
-        
-        // Buat array tim sementara (tanpa nama dulu)
-        const initialTeams: Team[] = teamGroups.map((group) => ({
-          id: uuidv4(),
-          name: '',
-          players: [group[0], group[1]] as [Player, Player],
-        }));
-
-        // Masukkan tim khusus jika ada
-        if (specialTeamPlayers) {
-          initialTeams.push({
+        // The Rigged Logic
+        if (newCurrentTeam.length === 1) {
+          const drawnName = player.name.toLowerCase();
+          if (drawnName === 'kunyuk') {
+            const diccyExists = newRemaining.some(p => p.name.toLowerCase() === 'diccy');
+            if (diccyExists) newForcedResult = 'diccy';
+          } else if (drawnName === 'diccy') {
+            const kunyukExists = newRemaining.some(p => p.name.toLowerCase() === 'kunyuk');
+            if (kunyukExists) newForcedResult = 'kunyuk';
+          }
+        } else if (newCurrentTeam.length === 2) {
+          newFinalTeams.push({
             id: uuidv4(),
-            name: '',
-            players: specialTeamPlayers,
+            name: '', // assigned later
+            players: [newCurrentTeam[0], newCurrentTeam[1]],
           });
+          // clear for next team
+          newCurrentTeam.length = 0;
+          newForcedResult = '';
         }
+
+        set({
+          remainingPlayers: newRemaining,
+          currentTeam: newCurrentTeam,
+          finalTeams: newFinalTeams,
+          forcedNextResult: newForcedResult,
+        });
+      },
+
+      finalizeDrafting: () => {
+        const { finalTeams } = get();
+        if (finalTeams.length === 0) return;
 
         // Acak urutan tim agar posisi di bracket tetap adil
-        const shuffledTeams = fisherYatesShuffle(initialTeams);
+        const shuffledTeams = fisherYatesShuffle([...finalTeams]);
 
         // Berikan nama Tim A, Tim B, dst
         const teams: Team[] = shuffledTeams.map((team, idx) => ({
@@ -272,6 +301,10 @@ export const useTournamentStore = create<TournamentState>()(
         set({
           phase: 'input',
           players: [],
+          remainingPlayers: [],
+          currentTeam: [],
+          finalTeams: [],
+          forcedNextResult: '',
           teams: [],
           matches: [],
           champion: null,

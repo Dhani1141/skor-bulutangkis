@@ -55,4 +55,4 @@ export interface Match {
 }
 
 /** Fase keseluruhan turnamen */
-export type TournamentPhase = 'input' | 'bracket' | 'finished';
+export type TournamentPhase = 'input' | 'drafting' | 'bracket' | 'finished';

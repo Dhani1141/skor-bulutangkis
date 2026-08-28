@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 
 export default function PlayerInputPage() {
   const router = useRouter();
-  const { players, addPlayer, removePlayer, generateBracket, resetTournament } =
+  const { players, addPlayer, removePlayer, startDrafting, resetTournament } =
     useTournamentStore();
 
   const [inputValue, setInputValue] = useState('');
@@ -44,8 +44,8 @@ export default function PlayerInputPage() {
 
   const handleGenerate = () => {
     if (!canGenerate) return;
-    generateBracket();
-    router.push('/bracket');
+    startDrafting();
+    router.push('/drafting');
   };
 
   const msg = validationMessage();
@@ -232,7 +232,7 @@ export default function PlayerInputPage() {
               className="btn-neon-green w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-3"
             >
               <Shuffle className="w-5 h-5" />
-              Generate Bracket
+              Mulai Drafting Tim
               {canGenerate && <ChevronRight className="w-5 h-5" />}
             </button>
 
