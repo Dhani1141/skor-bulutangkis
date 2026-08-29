@@ -21,6 +21,10 @@ interface TournamentState {
   champion: Team | null;
   activeMatchId: string | null;
 
+  // Queue & Rest
+  isResting: boolean;
+  restEndTime: number | null; // timestamp ms kapan istirahat berakhir
+
   // Drafting Data
   remainingPlayers: Player[];
   currentTeam: Player[];
@@ -42,10 +46,12 @@ interface TournamentState {
   closeMatch: () => void;
   incrementScore: (side: 'A' | 'B') => void;
   saveMatch: () => void;
+  skipRest: () => void;
 
   // Utility
   resetTournament: () => void;
   getActiveMatch: () => Match | null;
+  getMatchQueue: () => Match[];
 }
 
 // ── Store Implementation ───────────────────────────────────────────────────
@@ -66,6 +72,8 @@ export const useTournamentStore = create<TournamentState>()(
       matches: [],
       champion: null,
       activeMatchId: null,
+      isResting: false,
+      restEndTime: null,
 
       // ── Actions – Input Phase ────────────────────────────────────────────
 
@@ -307,7 +315,13 @@ export const useTournamentStore = create<TournamentState>()(
         set({
           matches: Array.from(matchMap.values()),
           activeMatchId: null,
+          isResting: true,
+          restEndTime: Date.now() + 5 * 60 * 1000, // 5 menit
         });
+      },
+
+      skipRest: () => {
+        set({ isResting: false, restEndTime: null });
       },
 
       // ── Utility ─────────────────────────────────────────────────────────
@@ -324,6 +338,8 @@ export const useTournamentStore = create<TournamentState>()(
           matches: [],
           champion: null,
           activeMatchId: null,
+          isResting: false,
+          restEndTime: null,
         });
       },
 
@@ -331,6 +347,52 @@ export const useTournamentStore = create<TournamentState>()(
         const { activeMatchId, matches } = get();
         if (!activeMatchId) return null;
         return matches.find((m) => m.id === activeMatchId) ?? null;
+      },
+
+      /**
+       * Mengurutkan match yang siap dimainkan (kedua tim sudah ada)
+       * dengan pola bergantian UB Round N → LB Round N.
+       */
+      getMatchQueue: () => {
+        const { matches } = get();
+
+        // Hanya match yang pending dan sudah punya kedua tim
+        const ready = matches.filter(
+          (m) => m.status === 'pending' && m.teamA !== null && m.teamB !== null
+        );
+
+        // Kelompokkan: ubRound -> LBRound lalu susun bergantian
+        const grouped = new Map<string, Match[]>();
+        for (const m of ready) {
+          const key = `${m.bracket}-${m.round}`;
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key)!.push(m);
+        }
+
+        // Tentukan max round per bracket
+        const ubRounds = [...new Set(ready.filter(m => m.bracket === 'upper').map(m => m.round))].sort((a,b) => a - b);
+        const lbRounds = [...new Set(ready.filter(m => m.bracket === 'lower').map(m => m.round))].sort((a,b) => a - b);
+        const gfRounds = [...new Set(ready.filter(m => m.bracket === 'grand_final').map(m => m.round))].sort((a,b) => a - b);
+
+        const ordered: Match[] = [];
+        const maxLen = Math.max(ubRounds.length, lbRounds.length, gfRounds.length);
+
+        for (let i = 0; i < maxLen; i++) {
+          if (ubRounds[i] !== undefined) {
+            const key = `upper-${ubRounds[i]}`;
+            ordered.push(...(grouped.get(key) ?? []));
+          }
+          if (lbRounds[i] !== undefined) {
+            const key = `lower-${lbRounds[i]}`;
+            ordered.push(...(grouped.get(key) ?? []));
+          }
+          if (gfRounds[i] !== undefined) {
+            const key = `grand_final-${gfRounds[i]}`;
+            ordered.push(...(grouped.get(key) ?? []));
+          }
+        }
+
+        return ordered;
       },
     }),
     {

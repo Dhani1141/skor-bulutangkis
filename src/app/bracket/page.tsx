@@ -4,13 +4,18 @@ import React from 'react';
 import { useTournamentStore } from '@/store/tournamentStore';
 import BracketView from '@/components/Bracket/BracketView';
 import ScoreboardModal from '@/components/Scoreboard/ScoreboardModal';
+import MatchQueueBanner from '@/components/Queue/MatchQueueBanner';
+import RestTimer from '@/components/Queue/RestTimer';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Users, RotateCcw, Zap } from 'lucide-react';
 
 export default function BracketPage() {
   const router = useRouter();
-  const { matches, teams, champion, phase, openMatch, activeMatchId, resetTournament } =
+  const { matches, teams, champion, phase, openMatch, activeMatchId, resetTournament,
+          isResting, restEndTime, skipRest, getMatchQueue } =
     useTournamentStore();
+  
+  const queue = getMatchQueue();
 
   if (phase === 'input' && matches.length === 0) {
     return (
@@ -141,6 +146,11 @@ export default function BracketPage() {
 
       <main className="max-w-screen-2xl mx-auto px-6 py-8 relative">
 
+        {/* ── Queue Banner ── */}
+        {phase !== 'finished' && (
+          <MatchQueueBanner queue={queue} isResting={isResting} />
+        )}
+
         {/* ── Champion Banner ── */}
         {phase === 'finished' && champion && (
           <div
@@ -232,6 +242,11 @@ export default function BracketPage() {
 
       {/* ── Scoreboard Modal ── */}
       {activeMatchId && <ScoreboardModal />}
+
+      {/* ── Rest Timer Overlay ── */}
+      {isResting && restEndTime && (
+        <RestTimer restEndTime={restEndTime} onSkip={skipRest} />
+      )}
     </div>
   );
 }
