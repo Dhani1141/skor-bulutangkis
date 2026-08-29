@@ -107,7 +107,7 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
 
       {/* Team A row */}
       <TeamRow
-        name={teamA?.name ?? 'TBD'}
+        name={teamA ? `${teamA.players[0].name} & ${teamA.players[1].name}` : 'TBD'}
         score={isFinished || isOngoing ? scoreA : null}
         isWinner={winnerIsA}
         isLoser={winnerIsB}
@@ -120,7 +120,7 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
 
       {/* Team B row */}
       <TeamRow
-        name={teamB?.name ?? 'TBD'}
+        name={teamB ? `${teamB.players[0].name} & ${teamB.players[1].name}` : 'TBD'}
         score={isFinished || isOngoing ? scoreB : null}
         isWinner={winnerIsB}
         isLoser={winnerIsA}
@@ -177,7 +177,7 @@ function TeamRow({ name, score, isWinner, isLoser, isEmpty, side }: TeamRowProps
           : 'transparent',
       }}
     >
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         {/* Side indicator pill */}
         <span
           className="text-[9px] font-black shrink-0 w-4 h-4 rounded flex items-center justify-center"
@@ -192,7 +192,7 @@ function TeamRow({ name, score, isWinner, isLoser, isEmpty, side }: TeamRowProps
           {side}
         </span>
         <span
-          className="text-sm font-semibold truncate max-w-[98px]"
+          className="text-xs font-semibold truncate flex-1 min-w-0"
           style={{
             color: textColor,
             fontStyle: isEmpty ? 'italic' : 'normal',
