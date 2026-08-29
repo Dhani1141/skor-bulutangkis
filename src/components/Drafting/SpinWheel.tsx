@@ -50,8 +50,8 @@ export default function SpinWheel({ players, targetPlayerId, onFinish }: SpinWhe
   // If players list is empty, just show empty state
   if (players.length === 0) {
     return (
-      <div className="relative w-full h-[192px] overflow-hidden rounded-2xl flex items-center justify-center" 
-           style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.5)' }}>
+      <div className="spin-wheel-outer relative w-full h-[192px] overflow-hidden flex items-center justify-center"
+           style={{ background: 'rgba(0,0,0,0.6)' }}>
         <span style={{ color: '#444' }}>Tidak ada pemain</span>
       </div>
     );
@@ -60,24 +60,29 @@ export default function SpinWheel({ players, targetPlayerId, onFinish }: SpinWhe
   const displayList = Array(DUPLICATIONS).fill(players).flat();
 
   return (
-    <div className="relative w-full h-[192px] overflow-hidden rounded-2xl" 
-         style={{ border: '1px solid rgba(0,212,255,0.3)', background: 'rgba(13,13,13,0.9)' }}>
+    // Outer wrapper: pulsing cyan glow + vivid border
+    <div className="spin-wheel-outer relative w-full h-[192px] overflow-hidden"
+         style={{ background: 'rgba(8,16,22,0.95)' }}>
       
-      {/* Target highlight box (Center) */}
-      <div className="absolute inset-x-0 top-[64px] h-[64px] z-10 pointer-events-none"
+      {/* Target highlight box (Center) — stronger saturated glow */}
+      <div className="spin-center-highlight absolute inset-x-0 top-[64px] h-[64px] z-10 pointer-events-none"
            style={{ 
-             background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.15), transparent)',
-             borderTop: '1px solid rgba(0,212,255,0.5)',
-             borderBottom: '1px solid rgba(0,212,255,0.5)',
-             boxShadow: '0 0 20px rgba(0,212,255,0.2)'
+             borderTop: '1.5px solid rgba(0,212,255,0.75)',
+             borderBottom: '1.5px solid rgba(0,212,255,0.75)',
            }} 
       />
 
+      {/* Side accent lines */}
+      <div className="absolute top-[64px] left-0 w-1 h-[64px] z-10 pointer-events-none"
+           style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,212,255,0.8), transparent)' }} />
+      <div className="absolute top-[64px] right-0 w-1 h-[64px] z-10 pointer-events-none"
+           style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,212,255,0.8), transparent)' }} />
+
       {/* Shadow overlays for depth */}
-      <div className="absolute inset-x-0 top-0 h-[64px] z-10 pointer-events-none"
-           style={{ background: 'linear-gradient(to bottom, rgba(13,13,13,1), transparent)' }} />
-      <div className="absolute inset-x-0 bottom-0 h-[64px] z-10 pointer-events-none"
-           style={{ background: 'linear-gradient(to top, rgba(13,13,13,1), transparent)' }} />
+      <div className="absolute inset-x-0 top-0 h-[72px] z-10 pointer-events-none"
+           style={{ background: 'linear-gradient(to bottom, rgba(8,16,22,1) 40%, transparent)' }} />
+      <div className="absolute inset-x-0 bottom-0 h-[72px] z-10 pointer-events-none"
+           style={{ background: 'linear-gradient(to top, rgba(8,16,22,1) 40%, transparent)' }} />
       
       {/* Scrollable list */}
       <div 
@@ -86,7 +91,7 @@ export default function SpinWheel({ players, targetPlayerId, onFinish }: SpinWhe
       >
         {displayList.map((p, i) => (
            <div key={`${p.id}-${i}`} className="h-[64px] flex items-center justify-center text-3xl font-black text-white uppercase tracking-wider" 
-                style={{ textShadow: '0 0 15px rgba(255,255,255,0.3)' }}>
+                style={{ textShadow: '0 0 20px rgba(0,212,255,0.55), 0 0 40px rgba(0,212,255,0.2)' }}>
              {p.name}
            </div>
         ))}

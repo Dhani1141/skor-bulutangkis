@@ -112,6 +112,66 @@ body {
   to   { stroke-dashoffset: 0; }
 }
 
+/* Cyan SpinWheel outer glow pulse */
+@keyframes cyanGlowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0px  4px rgba(0,212,255,0.0),
+      0 0 20px 6px rgba(0,212,255,0.25),
+      0 0 50px 10px rgba(0,212,255,0.1),
+      inset 0 0 20px rgba(0,212,255,0.04);
+  }
+  50% {
+    box-shadow:
+      0 0 0px  4px rgba(0,212,255,0.15),
+      0 0 30px 10px rgba(0,212,255,0.45),
+      0 0 70px 18px rgba(0,212,255,0.2),
+      inset 0 0 30px rgba(0,212,255,0.08);
+  }
+}
+
+/* Center highlight box inner glow pulse */
+@keyframes centerHighlightPulse {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(0,212,255,0.3), inset 0 0 30px rgba(0,212,255,0.08);
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.18), transparent);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0,212,255,0.6), inset 0 0 50px rgba(0,212,255,0.18);
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.32), transparent);
+  }
+}
+
+/* Team card entrance */
+@keyframes slideUpFadeIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* Spin button pulsing glow */
+@keyframes spinBtnPulse {
+  0%, 100% { box-shadow: 0 6px 30px -8px rgba(0,212,255,0.6), 0 0 0 0 rgba(0,212,255,0.25); }
+  50%       { box-shadow: 0 10px 45px -6px rgba(0,212,255,0.85), 0 0 0 8px rgba(0,212,255,0.0); }
+}
+
+/* P1 shimmer pulse */
+@keyframes p1Shimmer {
+  0%, 100% { box-shadow: 0 0 10px rgba(0,212,255,0.5), 0 0 25px rgba(0,212,255,0.2); }
+  50%       { box-shadow: 0 0 20px rgba(0,212,255,0.9), 0 0 45px rgba(0,212,255,0.45); }
+}
+
+/* P2 shimmer pulse */
+@keyframes p2Shimmer {
+  0%, 100% { box-shadow: 0 0 10px rgba(57,255,20,0.5), 0 0 25px rgba(57,255,20,0.2); }
+  50%       { box-shadow: 0 0 20px rgba(57,255,20,0.9), 0 0 45px rgba(57,255,20,0.45); }
+}
+
+/* Header gradient text shimmer */
+@keyframes headerShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
 /* ══════════════════════════════════════════════════════════════
    UTILITY CLASSES
    ══════════════════════════════════════════════════════════════ */
@@ -180,27 +240,44 @@ body {
   animation: shimmer 2.5s linear infinite;
 }
 
-/* Neon button glow */
+/* Neon button glow — premium */
 .btn-neon-green {
-  background: linear-gradient(135deg, #1a4a0a 0%, #2d7a15 100%);
-  border: 1px solid rgba(57,255,20,0.4);
-  box-shadow: 0 0 20px rgba(57,255,20,0.15), 0 4px 15px rgba(0,0,0,0.5);
+  background: linear-gradient(135deg, #163d08 0%, #1e5c0e 50%, #2d7a15 100%);
+  border: 1px solid rgba(57,255,20,0.5);
+  box-shadow:
+    0 0 0 1px rgba(57,255,20,0.08) inset,
+    0 0 24px rgba(57,255,20,0.22),
+    0 0 48px rgba(57,255,20,0.10),
+    0 6px 24px rgba(0,0,0,0.6);
   color: #39FF14;
-  transition: all 0.2s ease;
+  text-shadow: 0 0 10px rgba(57,255,20,0.7);
+  letter-spacing: 0.03em;
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .btn-neon-green:hover {
-  background: linear-gradient(135deg, #225510 0%, #3a9a1c 100%);
-  box-shadow: 0 0 30px rgba(57,255,20,0.35), 0 4px 20px rgba(0,0,0,0.5);
-  transform: translateY(-1px) scale(1.01);
+  background: linear-gradient(135deg, #1f5510 0%, #2b7818 50%, #3a9a1c 100%);
+  border-color: rgba(57,255,20,0.65);
+  box-shadow:
+    0 0 0 1px rgba(57,255,20,0.12) inset,
+    0 0 38px rgba(57,255,20,0.42),
+    0 0 70px rgba(57,255,20,0.18),
+    0 8px 28px rgba(0,0,0,0.6);
+  text-shadow: 0 0 16px rgba(57,255,20,0.9);
+  transform: translateY(-2px) scale(1.015);
 }
 .btn-neon-green:active {
   transform: translateY(0px) scale(0.98);
+  box-shadow:
+    0 0 18px rgba(57,255,20,0.28),
+    0 2px 10px rgba(0,0,0,0.5);
 }
 .btn-neon-green:disabled {
-  background: #1a1a1a;
-  border-color: rgba(255,255,255,0.06);
-  color: #444;
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.07);
+  color: #383838;
   box-shadow: none;
+  text-shadow: none;
+  letter-spacing: normal;
   transform: none;
   cursor: not-allowed;
 }
@@ -245,4 +322,152 @@ body {
   stroke-dasharray: 60;
   stroke-dashoffset: 0;
   animation: connectorDraw 0.4s ease-out both;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ADDITIONAL ANIMATIONS & UTILITIES
+   ══════════════════════════════════════════════════════════════ */
+
+/* Slide up entrance for new cards */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.slide-up { animation: slideUp 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* Spin button pulse */
+@keyframes spinButtonPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,212,255,0.4), 0 0 40px rgba(0,212,255,0.15); }
+  50%       { box-shadow: 0 0 35px rgba(0,212,255,0.7), 0 0 70px rgba(0,212,255,0.3); }
+}
+.btn-spin {
+  background: linear-gradient(135deg, #003d59, #005a80, #0077A8);
+  border: 1px solid rgba(0,212,255,0.5);
+  color: #00D4FF;
+  font-weight: 900;
+  animation: spinButtonPulse 2s ease-in-out infinite;
+  transition: all 0.2s ease;
+}
+.btn-spin:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00527a, #007aad, #009ad4);
+  transform: translateY(-2px) scale(1.02);
+}
+.btn-spin:active:not(:disabled) { transform: scale(0.97); }
+.btn-spin:disabled {
+  background: #1a1a1a;
+  border-color: rgba(255,255,255,0.06);
+  color: #444;
+  box-shadow: none;
+  animation: none;
+  cursor: not-allowed;
+}
+
+/* Neon border glow on spin wheel */
+@keyframes spinWheelGlow {
+  0%, 100% { box-shadow: 0 0 15px rgba(0,212,255,0.2), 0 0 30px rgba(0,212,255,0.08), inset 0 0 20px rgba(0,212,255,0.04); }
+  50%       { box-shadow: 0 0 30px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,0.18), inset 0 0 30px rgba(0,212,255,0.08); }
+}
+.spin-wheel-glow {
+  animation: spinWheelGlow 2.5s ease-in-out infinite;
+}
+
+/* P1/P2 filled pulse */
+@keyframes slotFilled {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+.slot-pop { animation: slotFilled 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* Ambient section divider gradient */
+.section-glow-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.25), transparent);
+}
+
+/* Premium card glow variants */
+.card-glow-cyan {
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.08),
+    0 4px 24px rgba(0,0,0,0.6),
+    0 0 40px rgba(0,212,255,0.05);
+}
+.card-glow-green {
+  box-shadow:
+    0 0 0 1px rgba(57,255,20,0.08),
+    0 4px 24px rgba(0,0,0,0.6),
+    0 0 40px rgba(57,255,20,0.05);
+}
+
+
+/* ── Drafting Page Utilities ──────────────────────────────────── */
+
+/* SpinWheel outer container – pulsing cyan glow */
+.spin-wheel-outer {
+  animation: cyanGlowPulse 2.4s ease-in-out infinite;
+  border: 1.5px solid rgba(0,212,255,0.55) !important;
+  border-radius: 1rem;
+}
+
+/* SpinWheel center highlight */
+.spin-center-highlight {
+  animation: centerHighlightPulse 2.4s ease-in-out infinite;
+}
+
+/* Spin button idle */
+.spin-btn-idle {
+  animation: spinBtnPulse 1.8s ease-in-out infinite;
+}
+
+/* P1 indicator filled */
+.p1-filled {
+  animation: p1Shimmer 1.6s ease-in-out infinite;
+}
+
+/* P2 indicator filled */
+.p2-filled {
+  animation: p2Shimmer 1.6s ease-in-out infinite;
+}
+
+/* Team card entrance */
+.team-card-enter {
+  animation: slideUpFadeIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Header neon gradient text */
+.drafting-title {
+  background: linear-gradient(90deg, #00D4FF, #7DF9FF, #00D4FF, #39FF14, #00D4FF);
+  background-size: 250% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: headerShimmer 4s linear infinite;
+}
+
+/* Mencari Pasangan card - glass strong with cyan border glow */
+.drafting-card {
+  background: rgba(13,20,26,0.88);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  border: 1px solid rgba(0,212,255,0.22);
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.08),
+    0 8px 40px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(0,212,255,0.1);
+}
+
+/* Tim Terbentuk individual team card */
+.team-formed-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.team-formed-card::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  border-radius: 9999px;
 }
