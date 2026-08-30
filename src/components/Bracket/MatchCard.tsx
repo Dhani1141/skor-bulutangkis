@@ -47,7 +47,7 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
     'relative w-48 rounded-2xl overflow-hidden text-left group select-none',
     'glass',
     isOngoing   ? 'match-active'  : '',  // hanya amber pulse animation
-    isPending   ? 'cursor-pointer hover:scale-[1.04]' : '',
+    isPending || isOngoing ? 'cursor-pointer hover:scale-[1.04]' : '',
     isWaiting   ? 'opacity-40 cursor-not-allowed' : '',
     !isPending && !isOngoing && !isFinished && !isWaiting ? 'opacity-60' : '',
   ].join(' ');
@@ -55,8 +55,8 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
   return (
     <button
       id={`match-${id}`}
-      onClick={isPending ? onClick : undefined}
-      disabled={!isPending}
+      onClick={isPending || isOngoing ? onClick : undefined}
+      disabled={!isPending && !isOngoing}
       title={
         isWaiting  ? 'Menunggu tim lain...'
         : isFinished ? 'Pertandingan selesai'
