@@ -205,32 +205,20 @@ export function generateDoubleEliminationBracket(teams: Team[]): Match[] {
 // AUTO-ADVANCE HELPERS
 // ══════════════════════════════════════════════════════════════════════════
 
-/** Auto-advance awal saat bracket di-generate (hanya untuk bye matches) */
 function applyInitialAutoAdvance(matches: Match[]): void {
   const map = new Map(matches.map(m => [m.id, m]));
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const m of Array.from(map.values())) {
-      if (m.status === 'finished' && m.winner) {
-        advanceTeam(map, m);
-        changed = true;
-      }
+  
+  // 1. Advance teams from matches that are already finished (e.g. UR1 bye matches)
+  for (const m of Array.from(map.values())) {
+    if (m.status === 'finished' && m.winner) {
+      advanceTeam(map, m);
     }
-    // Stop setelah satu pass penuh jika tidak ada perubahan baru
-    changed = false;
-    for (const m of Array.from(map.values())) {
-      if (m.status === 'finished' && m.winner && m.nextMatchWinnerId) {
-        const next = map.get(m.nextMatchWinnerId);
-        if (next) {
-          const slot = m.nextWinnerSlot;
-          if ((slot === 'A' && next.teamA === null) || (slot === 'B' && next.teamB === null)) {
-            advanceTeam(map, m);
-            changed = true;
-          }
-        }
-      }
-    }
+  }
+
+  // 2. Run the cleanup loop to handle double-byes and walkovers rippling through
+  let cleanupNeeded = true;
+  while (cleanupNeeded) {
+    cleanupNeeded = runAutoAdvanceCleanup(map);
   }
 }
 
@@ -290,7 +278,29 @@ export function runAutoAdvanceCleanup(map: Map<string, Match>): boolean {
 
     const hasA = m.teamA !== null;
     const hasB = m.teamB !== null;
-    if (!hasA && !hasB) continue; // Kedua slot kosong – belum waktunya
+
+    if (!hasA && !hasB) {
+      // Cek apakah KEDUA source sudah finished dan menghasilkan null (double-bye)
+      const srcA = findSlotSource(map, m.id, 'A');
+      const srcB = findSlotSource(map, m.id, 'B');
+
+      const isSrcADead = srcA && srcA.status === 'finished' && 
+        ((srcA.nextMatchLoserId === m.id && srcA.nextLoserSlot === 'A' && srcA.loser === null) || 
+         (srcA.nextMatchWinnerId === m.id && srcA.nextWinnerSlot === 'A' && srcA.winner === null));
+         
+      const isSrcBDead = srcB && srcB.status === 'finished' && 
+        ((srcB.nextMatchLoserId === m.id && srcB.nextLoserSlot === 'B' && srcB.loser === null) || 
+         (srcB.nextMatchWinnerId === m.id && srcB.nextWinnerSlot === 'B' && srcB.winner === null));
+
+      if (isSrcADead && isSrcBDead) {
+        m.winner = null;
+        m.loser = null;
+        m.status = 'finished';
+        advanceTeam(map, m);
+        changed = true;
+      }
+      continue;
+    }
 
     if (hasA && !hasB) {
       // Cek apakah slot B tidak akan pernah terisi

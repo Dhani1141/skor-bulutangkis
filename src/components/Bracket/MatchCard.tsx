@@ -88,7 +88,7 @@ export default function MatchCard({ match, onClick }: MatchCardProps) {
         <span className="text-[10px] font-mono tracking-widest uppercase"
           style={{ color: '#555' }}
         >
-          {teamA?.name ?? 'TBD'} vs {teamB?.name ?? 'TBD'}
+          {match.bracket === 'upper' ? 'UB' : match.bracket === 'lower' ? 'LB' : 'GF'} R{match.round}
         </span>
         <span className="flex items-center">
           {isFinished ? (
