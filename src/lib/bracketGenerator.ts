@@ -49,154 +49,237 @@ export function generateDoubleEliminationBracket(teams: Team[]): Match[] {
   const n = teams.length;
   if (n < 2) throw new Error('Minimal 2 tim diperlukan');
 
-  const bracketSize = nextPowerOf2(n);
-  const numByes = bracketSize - n;
-  
-  // Distribute BYEs evenly so there are no "null vs null" matches
-  const padded: (Team | null)[] = [];
-  let teamIdx = 0;
-  const numMatchesRound1 = bracketSize / 2;
-  
-  for (let i = 0; i < numMatchesRound1; i++) {
-    // Slot A gets a real team
-    padded.push(teams[teamIdx++]);
-    
-    // Slot B gets a BYE if we still have BYEs to distribute, otherwise a real team
-    if (i < numByes) {
-      padded.push(null);
-    } else {
-      padded.push(teams[teamIdx++]);
-    }
-  }
-
   const matches: Match[] = [];
-  let lbRound = 1;
 
-  // ── Upper Bracket Round 1 ──────────────────────────────────────────────
+  switch (n) {
+    case 2: {
+      matches.push(makeMatch('GF-1', 1, 1, 'grand_final', teams[0], teams[1]));
+      matches.push(makeMatch('GF-2', 2, 1, 'grand_final', teams[0], teams[1]));
+      matches.push(makeMatch('GF-3', 3, 1, 'grand_final', teams[0], teams[1]));
+      break;
+    }
+    case 3: {
+      const m1 = makeMatch('U1-1', 1, 1, 'upper', teams[1], teams[2]);
+      const m2 = makeMatch('U2-1', 2, 1, 'upper', teams[0], null);
+      const m3 = makeMatch('L1-1', 1, 1, 'lower', null, null);
+      const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
 
-  const ur1: Match[] = [];
-  for (let i = 0; i < bracketSize; i += 2) {
-    const tA = padded[i];
-    const tB = padded[i + 1] ?? null;
-    const pos = i / 2 + 1;
-    const m = makeMatch(`U1-${pos}`, 1, pos, 'upper', tA, tB);
+      m1.nextMatchWinnerId = m2.id; m1.nextWinnerSlot = 'B';
+      m1.nextMatchLoserId = m3.id; m1.nextLoserSlot = 'A';
 
-    // Bye: auto-selesaikan jika salah satu tim null
-    if (tA && !tB) { m.winner = tA; m.loser = null; m.status = 'finished'; }
-    else if (!tA && tB) { m.winner = tB; m.loser = null; m.status = 'finished'; }
+      m2.nextMatchWinnerId = gf.id; m2.nextWinnerSlot = 'A';
+      m2.nextMatchLoserId = m3.id; m2.nextLoserSlot = 'B';
 
-    matches.push(m);
-    ur1.push(m);
+      m3.nextMatchWinnerId = gf.id; m3.nextWinnerSlot = 'B';
+
+      matches.push(m1, m2, m3, gf);
+      break;
+    }
+    case 4: {
+      const m1 = makeMatch('U1-1', 1, 1, 'upper', teams[0], teams[1]);
+      const m2 = makeMatch('U1-2', 1, 2, 'upper', teams[2], teams[3]);
+      const m3 = makeMatch('U2-1', 2, 1, 'upper', null, null);
+      const m4 = makeMatch('L1-1', 1, 1, 'lower', null, null);
+      const m5 = makeMatch('L2-1', 2, 1, 'lower', null, null);
+      const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
+
+      m1.nextMatchWinnerId = m3.id; m1.nextWinnerSlot = 'A';
+      m1.nextMatchLoserId = m4.id; m1.nextLoserSlot = 'A';
+      
+      m2.nextMatchWinnerId = m3.id; m2.nextWinnerSlot = 'B';
+      m2.nextMatchLoserId = m4.id; m2.nextLoserSlot = 'B';
+
+      m3.nextMatchWinnerId = gf.id; m3.nextWinnerSlot = 'A';
+      m3.nextMatchLoserId = m5.id; m3.nextLoserSlot = 'B';
+
+      m4.nextMatchWinnerId = m5.id; m4.nextWinnerSlot = 'A';
+      m5.nextMatchWinnerId = gf.id; m5.nextWinnerSlot = 'B';
+
+      matches.push(m1, m2, m3, m4, m5, gf);
+      break;
+    }
+    case 5: {
+      const u1_1 = makeMatch('U1-1', 1, 1, 'upper', teams[3], teams[4]);
+      const u2_1 = makeMatch('U2-1', 2, 1, 'upper', teams[0], teams[1]);
+      const u2_2 = makeMatch('U2-2', 2, 2, 'upper', teams[2], null);
+      const u3_1 = makeMatch('U3-1', 3, 1, 'upper', null, null);
+      
+      const l1_1 = makeMatch('L1-1', 1, 1, 'lower', null, null);
+      const l2_1 = makeMatch('L2-1', 2, 1, 'lower', null, null);
+      const l3_1 = makeMatch('L3-1', 3, 1, 'lower', null, null);
+      const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
+
+      u1_1.nextMatchWinnerId = u2_2.id; u1_1.nextWinnerSlot = 'B';
+      u1_1.nextMatchLoserId = l1_1.id; u1_1.nextLoserSlot = 'B';
+
+      u2_1.nextMatchWinnerId = u3_1.id; u2_1.nextWinnerSlot = 'A';
+      u2_1.nextMatchLoserId = l2_1.id; u2_1.nextLoserSlot = 'B';
+
+      u2_2.nextMatchWinnerId = u3_1.id; u2_2.nextWinnerSlot = 'B';
+      u2_2.nextMatchLoserId = l1_1.id; u2_2.nextLoserSlot = 'A';
+
+      u3_1.nextMatchWinnerId = gf.id; u3_1.nextWinnerSlot = 'A';
+      u3_1.nextMatchLoserId = l3_1.id; u3_1.nextLoserSlot = 'B';
+
+      l1_1.nextMatchWinnerId = l2_1.id; l1_1.nextWinnerSlot = 'A';
+      l2_1.nextMatchWinnerId = l3_1.id; l2_1.nextWinnerSlot = 'A';
+      l3_1.nextMatchWinnerId = gf.id; l3_1.nextWinnerSlot = 'B';
+
+      matches.push(u1_1, u2_1, u2_2, u3_1, l1_1, l2_1, l3_1, gf);
+      break;
+    }
+    case 6: {
+      const u1_1 = makeMatch('U1-1', 1, 1, 'upper', teams[2], teams[3]);
+      const u1_2 = makeMatch('U1-2', 1, 2, 'upper', teams[4], teams[5]);
+      
+      const u2_1 = makeMatch('U2-1', 2, 1, 'upper', teams[0], null);
+      const u2_2 = makeMatch('U2-2', 2, 2, 'upper', teams[1], null);
+      
+      const u3_1 = makeMatch('U3-1', 3, 1, 'upper', null, null);
+      
+      const l1_1 = makeMatch('L1-1', 1, 1, 'lower', null, null);
+      const l2_1 = makeMatch('L2-1', 2, 1, 'lower', null, null);
+      const l3_1 = makeMatch('L3-1', 3, 1, 'lower', null, null);
+      const l4_1 = makeMatch('L4-1', 4, 1, 'lower', null, null);
+      const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
+
+      u1_1.nextMatchWinnerId = u2_1.id; u1_1.nextWinnerSlot = 'B';
+      u1_1.nextMatchLoserId = l1_1.id; u1_1.nextLoserSlot = 'A';
+      
+      u1_2.nextMatchWinnerId = u2_2.id; u1_2.nextWinnerSlot = 'B';
+      u1_2.nextMatchLoserId = l1_1.id; u1_2.nextLoserSlot = 'B';
+
+      u2_1.nextMatchWinnerId = u3_1.id; u2_1.nextWinnerSlot = 'A';
+      u2_1.nextMatchLoserId = l2_1.id; u2_1.nextLoserSlot = 'B';
+      
+      u2_2.nextMatchWinnerId = u3_1.id; u2_2.nextWinnerSlot = 'B';
+      u2_2.nextMatchLoserId = l3_1.id; u2_2.nextLoserSlot = 'B';
+
+      u3_1.nextMatchWinnerId = gf.id; u3_1.nextWinnerSlot = 'A';
+      u3_1.nextMatchLoserId = l4_1.id; u3_1.nextLoserSlot = 'B';
+
+      l1_1.nextMatchWinnerId = l2_1.id; l1_1.nextWinnerSlot = 'A';
+      l2_1.nextMatchWinnerId = l3_1.id; l2_1.nextWinnerSlot = 'A';
+      l3_1.nextMatchWinnerId = l4_1.id; l3_1.nextWinnerSlot = 'A';
+      l4_1.nextMatchWinnerId = gf.id; l4_1.nextWinnerSlot = 'B';
+
+      matches.push(u1_1, u1_2, u2_1, u2_2, u3_1, l1_1, l2_1, l3_1, l4_1, gf);
+      break;
+    }
+    case 7: {
+      const u1_1 = makeMatch('U1-1', 1, 1, 'upper', teams[1], teams[2]);
+      const u1_2 = makeMatch('U1-2', 1, 2, 'upper', teams[3], teams[4]);
+      const u1_3 = makeMatch('U1-3', 1, 3, 'upper', teams[5], teams[6]);
+
+      const u2_1 = makeMatch('U2-1', 2, 1, 'upper', teams[0], null);
+      const u2_2 = makeMatch('U2-2', 2, 2, 'upper', null, null);
+
+      const u3_1 = makeMatch('U3-1', 3, 1, 'upper', null, null);
+
+      const l1_1 = makeMatch('L1-1', 1, 1, 'lower', null, null);
+      const l2_1 = makeMatch('L2-1', 2, 1, 'lower', null, null);
+      const l2_2 = makeMatch('L2-2', 2, 2, 'lower', null, null);
+      const l3_1 = makeMatch('L3-1', 3, 1, 'lower', null, null);
+      const l4_1 = makeMatch('L4-1', 4, 1, 'lower', null, null);
+      const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
+
+      u1_1.nextMatchWinnerId = u2_1.id; u1_1.nextWinnerSlot = 'B';
+      u1_1.nextMatchLoserId = l2_2.id; u1_1.nextLoserSlot = 'B';
+
+      u1_2.nextMatchWinnerId = u2_2.id; u1_2.nextWinnerSlot = 'A';
+      u1_2.nextMatchLoserId = l1_1.id; u1_2.nextLoserSlot = 'A';
+
+      u1_3.nextMatchWinnerId = u2_2.id; u1_3.nextWinnerSlot = 'B';
+      u1_3.nextMatchLoserId = l1_1.id; u1_3.nextLoserSlot = 'B';
+
+      u2_1.nextMatchWinnerId = u3_1.id; u2_1.nextWinnerSlot = 'A';
+      u2_1.nextMatchLoserId = l2_2.id; u2_1.nextLoserSlot = 'A';
+
+      u2_2.nextMatchWinnerId = u3_1.id; u2_2.nextWinnerSlot = 'B';
+      u2_2.nextMatchLoserId = l2_1.id; u2_2.nextLoserSlot = 'A';
+
+      u3_1.nextMatchWinnerId = gf.id; u3_1.nextWinnerSlot = 'A';
+      u3_1.nextMatchLoserId = l4_1.id; u3_1.nextLoserSlot = 'B';
+
+      l1_1.nextMatchWinnerId = l2_1.id; l1_1.nextWinnerSlot = 'B';
+      
+      l2_1.nextMatchWinnerId = l3_1.id; l2_1.nextWinnerSlot = 'A';
+      l2_2.nextMatchWinnerId = l3_1.id; l2_2.nextWinnerSlot = 'B';
+      
+      l3_1.nextMatchWinnerId = l4_1.id; l3_1.nextWinnerSlot = 'A';
+      
+      l4_1.nextMatchWinnerId = gf.id; l4_1.nextWinnerSlot = 'B';
+
+      matches.push(u1_1, u1_2, u1_3, u2_1, u2_2, u3_1, l1_1, l2_1, l2_2, l3_1, l4_1, gf);
+      break;
+    }
+    case 8: {
+      const u1_1 = makeMatch('U1-1', 1, 1, 'upper', teams[0], teams[1]);
+      const u1_2 = makeMatch('U1-2', 1, 2, 'upper', teams[2], teams[3]);
+      const u1_3 = makeMatch('U1-3', 1, 3, 'upper', teams[4], teams[5]);
+      const u1_4 = makeMatch('U1-4', 1, 4, 'upper', teams[6], teams[7]);
+
+      const u2_1 = makeMatch('U2-1', 2, 1, 'upper', null, null);
+      const u2_2 = makeMatch('U2-2', 2, 2, 'upper', null, null);
+      
+      const u3_1 = makeMatch('U3-1', 3, 1, 'upper', null, null);
+
+      const l1_1 = makeMatch('L1-1', 1, 1, 'lower', null, null);
+      const l1_2 = makeMatch('L1-2', 1, 2, 'lower', null, null);
+      
+      const l2_1 = makeMatch('L2-1', 2, 1, 'lower', null, null);
+      const l2_2 = makeMatch('L2-2', 2, 2, 'lower', null, null);
+      
+      const l3_1 = makeMatch('L3-1', 3, 1, 'lower', null, null);
+      
+      const l4_1 = makeMatch('L4-1', 4, 1, 'lower', null, null);
+      const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
+
+      u1_1.nextMatchWinnerId = u2_1.id; u1_1.nextWinnerSlot = 'A';
+      u1_1.nextMatchLoserId = l1_1.id; u1_1.nextLoserSlot = 'A';
+
+      u1_2.nextMatchWinnerId = u2_1.id; u1_2.nextWinnerSlot = 'B';
+      u1_2.nextMatchLoserId = l1_1.id; u1_2.nextLoserSlot = 'B';
+
+      u1_3.nextMatchWinnerId = u2_2.id; u1_3.nextWinnerSlot = 'A';
+      u1_3.nextMatchLoserId = l1_2.id; u1_3.nextLoserSlot = 'A';
+
+      u1_4.nextMatchWinnerId = u2_2.id; u1_4.nextWinnerSlot = 'B';
+      u1_4.nextMatchLoserId = l1_2.id; u1_4.nextLoserSlot = 'B';
+
+      u2_1.nextMatchWinnerId = u3_1.id; u2_1.nextWinnerSlot = 'A';
+      u2_1.nextMatchLoserId = l2_2.id; u2_1.nextLoserSlot = 'A';
+
+      u2_2.nextMatchWinnerId = u3_1.id; u2_2.nextWinnerSlot = 'B';
+      u2_2.nextMatchLoserId = l2_1.id; u2_2.nextLoserSlot = 'A';
+
+      u3_1.nextMatchWinnerId = gf.id; u3_1.nextWinnerSlot = 'A';
+      u3_1.nextMatchLoserId = l4_1.id; u3_1.nextLoserSlot = 'B';
+
+      l1_1.nextMatchWinnerId = l2_1.id; l1_1.nextWinnerSlot = 'B';
+      l1_2.nextMatchWinnerId = l2_2.id; l1_2.nextWinnerSlot = 'B';
+
+      l2_1.nextMatchWinnerId = l3_1.id; l2_1.nextWinnerSlot = 'A';
+      l2_2.nextMatchWinnerId = l3_1.id; l2_2.nextWinnerSlot = 'B';
+
+      l3_1.nextMatchWinnerId = l4_1.id; l3_1.nextWinnerSlot = 'A';
+
+      l4_1.nextMatchWinnerId = gf.id; l4_1.nextWinnerSlot = 'B';
+
+      matches.push(u1_1, u1_2, u1_3, u1_4, u2_1, u2_2, u3_1, l1_1, l1_2, l2_1, l2_2, l3_1, l4_1, gf);
+      break;
+    }
+    default:
+      throw new Error('Hanya mendukung 2 sampai 8 tim');
   }
 
-  // ── Upper Bracket ronde berikutnya ────────────────────────────────────
-
-  const upperRounds: Match[][] = [ur1];
-  let prevUR   = ur1;
-  let ubRoundN = 2;
-
-  while (prevUR.length > 1) {
-    const round: Match[] = [];
-    for (let i = 0; i < prevUR.length; i += 2) {
-      const pos = i / 2 + 1;
-      const m = makeMatch(`U${ubRoundN}-${pos}`, ubRoundN, pos, 'upper', null, null);
-      matches.push(m);
-      round.push(m);
-
-      prevUR[i].nextMatchWinnerId = m.id;
-      prevUR[i].nextWinnerSlot   = 'A';
-      if (i + 1 < prevUR.length) {
-        prevUR[i + 1].nextMatchWinnerId = m.id;
-        prevUR[i + 1].nextWinnerSlot   = 'B';
-      }
-    }
-    upperRounds.push(round);
-    prevUR = round;
-    ubRoundN++;
-  }
-
-  const upperFinal = prevUR[0];
-
-  // ── Lower Bracket ──────────────────────────────────────────────────────
-  // LR1 (Consolidation): losers dari UR1 main sesama
-
-  const lr1: Match[] = [];
-  for (let i = 0; i < ur1.length; i += 2) {
-    const pos = i / 2 + 1;
-    const m = makeMatch(`L${lbRound}-${pos}`, lbRound, pos, 'lower', null, null);
-    matches.push(m);
-    lr1.push(m);
-
-    ur1[i].nextMatchLoserId = m.id;
-    ur1[i].nextLoserSlot   = 'A';
-    if (i + 1 < ur1.length) {
-      ur1[i + 1].nextMatchLoserId = m.id;
-      ur1[i + 1].nextLoserSlot   = 'B';
+  // Set initial status to pending for matches that have both teams (except for Bo3 GF-2 and GF-3)
+  for (const m of matches) {
+    if (m.teamA !== null && m.teamB !== null) {
+      if (m.id === 'GF-2' || m.id === 'GF-3') continue;
+      m.status = 'pending';
     }
   }
-  lbRound++;
-  let prevLB = lr1;
-
-  // Alternating Infusion + Consolidation untuk sisa ronde Upper
-  for (let ubIdx = 1; ubIdx < upperRounds.length; ubIdx++) {
-    const ubRound = upperRounds[ubIdx];
-
-    // ── Infusion: UR losers bergabung dengan LB survivors ──
-    const infusion: Match[] = [];
-    for (let i = 0; i < prevLB.length; i++) {
-      const m = makeMatch(`L${lbRound}-${i + 1}`, lbRound, i + 1, 'lower', null, null);
-      matches.push(m);
-      infusion.push(m);
-
-      // LB survivor → slot A
-      prevLB[i].nextMatchWinnerId = m.id;
-      prevLB[i].nextWinnerSlot   = 'A';
-
-      // UR loser → slot B
-      if (i < ubRound.length) {
-        ubRound[i].nextMatchLoserId = m.id;
-        ubRound[i].nextLoserSlot   = 'B';
-      }
-    }
-    lbRound++;
-    prevLB = infusion;
-
-    // ── Consolidation: LB survivors main sesama
-    //    (hanya jika masih ada ronde UB lagi setelah ini)
-    if (ubIdx < upperRounds.length - 1 && prevLB.length > 1) {
-      const consol: Match[] = [];
-      for (let i = 0; i < prevLB.length; i += 2) {
-        const pos = i / 2 + 1;
-        const m = makeMatch(`L${lbRound}-${pos}`, lbRound, pos, 'lower', null, null);
-        matches.push(m);
-        consol.push(m);
-
-        prevLB[i].nextMatchWinnerId = m.id;
-        prevLB[i].nextWinnerSlot   = 'A';
-        if (i + 1 < prevLB.length) {
-          prevLB[i + 1].nextMatchWinnerId = m.id;
-          prevLB[i + 1].nextWinnerSlot   = 'B';
-        }
-      }
-      lbRound++;
-      prevLB = consol;
-    }
-  }
-
-  const lowerFinal = prevLB[0];
-
-  // ── Grand Final ────────────────────────────────────────────────────────
-
-  const gf = makeMatch('GF', 1, 1, 'grand_final', null, null);
-  matches.push(gf);
-
-  upperFinal.nextMatchWinnerId = gf.id;
-  upperFinal.nextWinnerSlot   = 'A';
-  lowerFinal.nextMatchWinnerId = gf.id;
-  lowerFinal.nextWinnerSlot   = 'B';
-
-  // Apply auto-advance awal (untuk bye matches)
-  applyInitialAutoAdvance(matches);
 
   return matches;
 }

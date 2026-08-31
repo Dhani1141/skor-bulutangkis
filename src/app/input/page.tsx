@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTournamentStore } from '@/store/tournamentStore';
-import { UserPlus, X, AlertTriangle, ChevronRight, Shuffle, Zap } from 'lucide-react';
+import { UserPlus, Trash2, AlertTriangle, ChevronRight, Shuffle, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function PlayerInputPage() {
@@ -444,19 +444,19 @@ export default function PlayerInputPage() {
                       </span>
                       <button
                         onClick={() => removePlayer(player.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg flex items-center justify-center"
-                        style={{ color: '#555' }}
+                        className="transition-colors w-6 h-6 rounded-lg flex items-center justify-center"
+                        style={{ color: '#FF313180' }}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLButtonElement).style.color = '#FF3131';
                           (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,49,49,0.1)';
                         }}
                         onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLButtonElement).style.color = '#555';
+                          (e.currentTarget as HTMLButtonElement).style.color = '#FF313180';
                           (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
                         }}
                         aria-label={`Hapus ${player.name}`}
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </li>
                   );

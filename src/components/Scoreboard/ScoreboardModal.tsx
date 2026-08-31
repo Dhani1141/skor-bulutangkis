@@ -3,7 +3,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useTournamentStore } from '@/store/tournamentStore';
 import { checkWinner, isDeuce, isSuddenDeath, getMatchStatusText } from '@/lib/scoringLogic';
-import { X, Trophy, ChevronRight, Plus } from 'lucide-react';
+import { X, Trophy, ChevronRight, Plus, Minus } from 'lucide-react';
 
 /**
  * ScoreboardModal – antarmuka papan skor fullscreen dengan estetika:
@@ -13,7 +13,7 @@ import { X, Trophy, ChevronRight, Plus } from 'lucide-react';
  * - Aturan BWF: Normal win (21), Deuce (20-20), Sudden Death (29-29→30)
  */
 export default function ScoreboardModal() {
-  const { getActiveMatch, incrementScore, saveMatch, closeMatch } = useTournamentStore();
+  const { getActiveMatch, incrementScore, decrementScore, saveMatch, closeMatch } = useTournamentStore();
   const match = getActiveMatch();
 
   // ── Local state untuk trigger animasi pulse per skor ──────────
@@ -131,6 +131,7 @@ export default function ScoreboardModal() {
             hasWinner={hasWinner}
             side="A"
             onIncrement={() => incrementScore('A')}
+            onDecrement={() => decrementScore('A')}
           />
           <ScoreSide
             teamName={teamB?.name ?? 'Tim B'}
@@ -142,6 +143,7 @@ export default function ScoreboardModal() {
             hasWinner={hasWinner}
             side="B"
             onIncrement={() => incrementScore('B')}
+            onDecrement={() => decrementScore('B')}
           />
         </div>
 
@@ -237,9 +239,10 @@ interface ScoreSideProps {
   hasWinner: boolean;
   side: 'A' | 'B';
   onIncrement: () => void;
+  onDecrement: () => void;
 }
 
-function ScoreSide({ teamName, players, score, scoreAnimKey, isWinner, isLoser, hasWinner, side, onIncrement }: ScoreSideProps) {
+function ScoreSide({ teamName, players, score, scoreAnimKey, isWinner, isLoser, hasWinner, side, onIncrement, onDecrement }: ScoreSideProps) {
   const accentColor = side === 'A' ? '#00D4FF' : '#FF3131';
   const winnerColor = '#39FF14';
 
@@ -286,17 +289,29 @@ function ScoreSide({ teamName, players, score, scoreAnimKey, isWinner, isLoser, 
         {score}
       </div>
 
-      {/* +1 Button */}
-      <button
-        id={`score-btn-${side}`}
-        onClick={onIncrement}
-        disabled={hasWinner}
-        className={`w-full py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 ${side === 'A' ? 'btn-score-a' : 'btn-score-b'}`}
-        aria-label={`Tambah poin ${teamName}`}
-      >
-        <Plus className="w-5 h-5" />
-        +1 Poin
-      </button>
+      {/* Buttons */}
+      <div className="w-full flex flex-col gap-2">
+        <button
+          id={`score-btn-${side}`}
+          onClick={onIncrement}
+          disabled={hasWinner}
+          className={`w-full py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 ${side === 'A' ? 'btn-score-a' : 'btn-score-b'}`}
+          aria-label={`Tambah poin ${teamName}`}
+        >
+          <Plus className="w-5 h-5" />
+          +1 Poin
+        </button>
+        <button
+          onClick={onDecrement}
+          disabled={score === 0}
+          className="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all opacity-70 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ background: 'rgba(255,255,255,0.05)', color: '#A0A0A0' }}
+          aria-label={`Kurangi poin ${teamName}`}
+        >
+          <Minus className="w-4 h-4" />
+          Kurangi 1 Poin
+        </button>
+      </div>
     </div>
   );
 }

@@ -45,6 +45,7 @@ interface TournamentState {
   openMatch: (matchId: string) => void;
   closeMatch: () => void;
   incrementScore: (side: 'A' | 'B') => void;
+  decrementScore: (side: 'A' | 'B') => void;
   saveMatch: () => void;
   skipRest: () => void;
 
@@ -250,6 +251,38 @@ export const useTournamentStore = create<TournamentState>()(
       },
 
       /**
+       * Kurangi poin tim A atau B.
+       * Jika match sebelumnya selesai tapi skor berkurang sehingga tidak ada pemenang,
+       * match akan kembali 'ongoing'.
+       */
+      decrementScore: (side: 'A' | 'B') => {
+        const { activeMatchId, matches } = get();
+        if (!activeMatchId) return;
+
+        set((state) => ({
+          matches: state.matches.map((m) => {
+            if (m.id !== activeMatchId) return m;
+
+            const newScoreA = side === 'A' ? Math.max(0, m.scoreA - 1) : m.scoreA;
+            const newScoreB = side === 'B' ? Math.max(0, m.scoreB - 1) : m.scoreB;
+            const winnerSide = checkWinner(newScoreA, newScoreB);
+
+            const winnerTeam = winnerSide === 'A' ? m.teamA : winnerSide === 'B' ? m.teamB : null;
+            const loserTeam = winnerSide === 'A' ? m.teamB : winnerSide === 'B' ? m.teamA : null;
+
+            return {
+              ...m,
+              scoreA: newScoreA,
+              scoreB: newScoreB,
+              winner: winnerTeam,
+              loser: loserTeam,
+              status: winnerTeam ? 'finished' : 'ongoing',
+            };
+          }),
+        }));
+      },
+
+      /**
        * Simpan hasil match dan advance tim ke match berikutnya.
        * - Pemenang Upper → match upper berikutnya
        * - Pecundang Upper → match lower
@@ -257,11 +290,32 @@ export const useTournamentStore = create<TournamentState>()(
        * - Pemenang Grand Final → champion
        */
       saveMatch: () => {
-        const { activeMatchId, matches } = get();
+        const { activeMatchId, matches, teams } = get();
         if (!activeMatchId) return;
 
         const finishedMatch = matches.find((m) => m.id === activeMatchId);
         if (!finishedMatch || !finishedMatch.winner) return;
+
+        // Custom Bo3 logic for 2 teams
+        if (teams.length === 2) {
+          const winnerId = finishedMatch.winner.id;
+          const wins = matches.filter(m => m.winner?.id === winnerId).length;
+          if (wins >= 2) {
+            set({ champion: finishedMatch.winner, phase: 'finished', activeMatchId: null });
+          } else {
+            // Find next match and set to pending
+            const nextMatch = matches.find(m => m.status === 'pending');
+            if (nextMatch) {
+              set((state) => ({
+                matches: state.matches.map(m => m.id === nextMatch.id ? { ...m, status: 'pending' } : m),
+                activeMatchId: null,
+                isResting: true,
+                restEndTime: Date.now() + 5 * 60 * 1000,
+              }));
+            }
+          }
+          return;
+        }
 
         // Check apakah ini Grand Final
         if (finishedMatch.bracket === 'grand_final') {
