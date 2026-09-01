@@ -319,31 +319,12 @@ export const useTournamentStore = create<TournamentState>()(
 
         // Check apakah ini Grand Final
         if (finishedMatch.bracket === 'grand_final') {
-          // Jika yang menang adalah tim B (dari Lower Bracket) DAN match saat ini bukan 'GF-Reset'
-          if (finishedMatch.id === 'GF' && finishedMatch.winner?.id === finishedMatch.teamB?.id) {
-            // Bracket Reset! Create True Grand Final
-            const trueGF: Match = {
-              id: 'GF-Reset',
-              round: 2,
-              position: 1,
-              bracket: 'grand_final',
-              teamA: finishedMatch.teamB, // The winner of first GF (from LB)
-              teamB: finishedMatch.teamA, // The loser of first GF (from UB, now has 1 loss)
-              scoreA: 0,
-              scoreB: 0,
-              winner: null,
-              loser: null,
-              status: 'pending',
-              nextMatchWinnerId: null,
-              nextWinnerSlot: null,
-              nextMatchLoserId: null,
-              nextLoserSlot: null,
-            };
-
-            set((state) => ({
-              matches: [...state.matches, trueGF],
+            // Langsung set champion (Sudden Death, no bracket reset/True Grand Final)
+            set({
+              champion: finishedMatch.winner,
+              phase: 'finished',
               activeMatchId: null,
-            }));
+            });
             return;
           }
 
