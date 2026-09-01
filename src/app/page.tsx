@@ -33,18 +33,15 @@ function CircularWheel({ players, targetPlayerId, onFinish, colorTheme }: { play
     }
   }, [targetPlayerId, players]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sliceAngle = players.length > 0 ? 360 / players.length : 360;
+  let displayPlayers = players;
+  if (players.length === 0) {
+    displayPlayers = Array.from({length: 8}).map((_, i) => ({id: String(i), name: `Sektor ${i+1}`}));
+  }
+
+  const sliceAngle = displayPlayers.length > 0 ? 360 / displayPlayers.length : 360;
   const colors = colorTheme === 'blue' 
     ? ['#0088cc', '#00aaff'] 
     : ['#1e90ff', '#32cd32']; // We'll refine colors later
-
-  if (players.length === 0) {
-    return (
-      <div className={`w-48 h-48 rounded-full border-4 border-dashed border-gray-600 flex items-center justify-center`}>
-         <span className="text-gray-500 text-xs">Kosong</span>
-      </div>
-    );
-  }
 
   return (
     <div className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full overflow-hidden border-4 shadow-lg transition-transform duration-[3500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
@@ -56,11 +53,11 @@ function CircularWheel({ players, targetPlayerId, onFinish, colorTheme }: { play
          
          {/* Simple pie slices using conic-gradient (approximate for now, better to use absolute positioned divs if we want text) */}
          <div className="absolute inset-0" style={{
-             background: `conic-gradient(${players.map((p, i) => `${colors[i % 2]} ${i * sliceAngle}deg ${(i + 1) * sliceAngle}deg`).join(', ')})`
+             background: `conic-gradient(${displayPlayers.map((p, i) => `${colors[i % 2]} ${i * sliceAngle}deg ${(i + 1) * sliceAngle}deg`).join(', ')})`
          }} />
          
          {/* Text labels */}
-         {players.map((p, i) => {
+         {displayPlayers.map((p, i) => {
            const midAngle = (i * sliceAngle) + (sliceAngle / 2);
            return (
              <div key={p.id} className="absolute inset-0 flex items-start justify-center text-xs font-bold text-white pt-4"
@@ -279,31 +276,31 @@ export default function DashboardPage() {
                    {/* Wheel 1 */}
                    <div className="flex flex-col items-center">
                       <CircularWheel 
-                        players={remainingPlayers} 
+                        players={phase === 'drafting' && remainingPlayers.length === 0 && finalTeams.length > 0 ? [finalTeams[finalTeams.length - 1].players[0]] : remainingPlayers} 
                         targetPlayerId={targetIdP1} 
                         onFinish={handleSpinFinish} 
                         colorTheme="blue" 
                       />
                       <div className="mt-4 bg-[#00D4FF]/10 border border-[#00D4FF]/30 px-4 py-1.5 rounded text-[#00D4FF] font-bold text-xs text-center w-full min-h-[32px]">
-                         {currentTeam.length >= 1 ? currentTeam[0].name : 'Pemain 1'}
+                         {phase === 'drafting' && remainingPlayers.length === 0 && finalTeams.length > 0 ? `TERPILIH: ${finalTeams[finalTeams.length - 1].players[0].name} (Tim Biru)` : currentTeam.length >= 1 ? currentTeam[0].name : 'Pemain 1'}
                       </div>
                    </div>
                    
                    {/* Center text */}
-                   <div className="text-center font-bold text-gray-400 text-xs sm:text-sm uppercase tracking-widest max-w-[120px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[120%] bg-[#1a1f26] p-2 rounded z-10">
-                      SISTEM SEDANG MENGACAK...
+                   <div className="text-center font-bold text-gray-400 text-xs sm:text-sm uppercase tracking-widest max-w-[120px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a1f26]/90 backdrop-blur p-3 rounded z-10 border border-gray-700 shadow-xl">
+                      {phase === 'drafting' && remainingPlayers.length === 0 ? 'Draf Tim Selesai! Tim Baru Terbentuk!' : 'SISTEM SEDANG MENGACAK...'}
                    </div>
                    
                    {/* Wheel 2 */}
                    <div className="flex flex-col items-center">
                       <CircularWheel 
-                        players={remainingPlayers} 
+                        players={phase === 'drafting' && remainingPlayers.length === 0 && finalTeams.length > 0 ? [finalTeams[finalTeams.length - 1].players[1]] : remainingPlayers} 
                         targetPlayerId={targetIdP2} 
                         onFinish={handleSpinFinish} 
                         colorTheme="green" 
                       />
                       <div className="mt-4 bg-[#39FF14]/10 border border-[#39FF14]/30 px-4 py-1.5 rounded text-[#39FF14] font-bold text-xs text-center w-full min-h-[32px]">
-                         {currentTeam.length >= 2 ? currentTeam[1].name : 'Pemain 2'}
+                         {phase === 'drafting' && remainingPlayers.length === 0 && finalTeams.length > 0 ? `TERPILIH: ${finalTeams[finalTeams.length - 1].players[1].name} (Tim Hijau)` : currentTeam.length >= 2 ? currentTeam[1].name : 'Pemain 2'}
                       </div>
                    </div>
                  </div>
@@ -314,10 +311,15 @@ export default function DashboardPage() {
                      {isSpinning ? 'MEMUTAR...' : 'ACAK PEMAIN'}
                    </button>
                  ) : phase === 'drafting' && remainingPlayers.length === 0 ? (
-                   <button onClick={() => finalizeDrafting()}
-                           className="w-full bg-white text-black py-4 rounded-xl font-black text-sm tracking-widest uppercase hover:bg-gray-200 transition shadow-[0_0_15px_rgba(255,255,255,0.4)]">
-                     KONFIRMASI TIM & BUAT BRAKET
-                   </button>
+                   <div className="flex gap-4">
+                     <button disabled className="w-1/3 bg-gray-700 text-gray-400 py-4 rounded-xl font-black text-sm tracking-widest uppercase opacity-50 cursor-not-allowed">
+                       ACAK LAGI
+                     </button>
+                     <button onClick={() => finalizeDrafting()}
+                             className="w-2/3 bg-[#00D4FF] text-black py-4 rounded-xl font-black text-sm tracking-widest uppercase hover:bg-[#00D4FF]/90 transition shadow-[0_0_20px_rgba(0,212,255,0.6)] border border-[#00D4FF]">
+                       KONFIRMASI TIM
+                     </button>
+                   </div>
                  ) : (
                    <div className="w-full bg-gray-800 text-gray-500 py-4 rounded-xl font-black text-sm tracking-widest uppercase text-center border border-gray-700">
                      MENUNGGU PENDAFTARAN
@@ -339,6 +341,25 @@ export default function DashboardPage() {
                 
                 <div className="p-6 flex-1 flex flex-col">
                    {/* Top Active Matches Banner */}
+                   {phase === 'finished' && store.champion ? (
+                      <div className="mb-8 relative rounded-2xl overflow-hidden bg-gradient-to-br from-yellow-900/40 via-black to-yellow-900/20 border border-yellow-500/50 shadow-[0_0_40px_rgba(250,204,21,0.2)] p-8 text-center flex flex-col items-center justify-center">
+                        <div className="absolute inset-0 pointer-events-none bg-[url('/confetti.png')] opacity-30 mix-blend-screen" />
+                        <h3 className="text-yellow-400 font-black text-4xl tracking-widest drop-shadow-[0_0_10px_rgba(250,204,21,0.8)] mb-6">
+                           JUARA TURNAMEN: GRAND FINAL
+                        </h3>
+                        <div className="flex items-center gap-8 z-10">
+                           <Trophy className="w-24 h-24 text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-pulse" />
+                           <div className="bg-[#111]/80 backdrop-blur border-2 border-yellow-500 rounded-xl p-6 shadow-[0_0_30px_rgba(250,204,21,0.4)]">
+                              <div className="text-yellow-400 text-xs font-black tracking-widest mb-2">PEMENANG MUTLAK</div>
+                              <div className="flex items-center gap-4">
+                                 <div className="text-white font-black text-2xl">{store.champion.name} <span className="text-gray-400 text-sm ml-2">({store.champion.players[0].name} & {store.champion.players[1].name})</span></div>
+                                 <div className="text-yellow-400 font-black text-3xl">21 - 0</div>
+                                 <Trophy className="w-6 h-6 text-yellow-400" />
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+                   ) : (
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                       {/* Ongoing Match */}
                       <div className="bg-[#0b0e12] border border-[#00D4FF]/30 rounded-xl p-4 shadow-[0_0_15px_rgba(0,212,255,0.05)] relative overflow-hidden">
@@ -383,6 +404,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                    </div>
+                   )}
                    
                    {/* Main Bracket Area */}
                    <div className="flex-1 rounded-xl bg-[#0b0e12] border border-gray-800 p-2 overflow-x-auto custom-scrollbar relative">
@@ -413,6 +435,10 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-gray-800 border border-gray-600 rounded-sm"></div>
                         <span className="text-xs text-gray-500">Menunggu tim</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-yellow-400/20 border border-yellow-400 rounded-sm shadow-[0_0_5px_rgba(250,204,21,0.4)]"></div>
+                        <span className="text-xs text-yellow-400 font-bold tracking-widest">PEMENANG</span>
                       </div>
                    </div>
                 </div>
