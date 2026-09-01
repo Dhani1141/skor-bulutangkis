@@ -319,7 +319,7 @@ export const useTournamentStore = create<TournamentState>()(
 
         // Check apakah ini Grand Final
         if (finishedMatch.bracket === 'grand_final') {
-            // Langsung set champion (Sudden Death, no bracket reset/True Grand Final)
+            // Pemenang Grand Final langsung menjadi juara (Sudden Death, tanpa True Grand Final)
             set({
               champion: finishedMatch.winner,
               phase: 'finished',
@@ -327,17 +327,8 @@ export const useTournamentStore = create<TournamentState>()(
             });
             return;
           }
-
-          // Jika UB winner yang menang GF pertama, atau siapapun yang menang GF-Reset
-          set({
-            champion: finishedMatch.winner,
-            phase: 'finished',
-            activeMatchId: null,
-          });
-          return;
-        }
-
-        // Advance pemenang & pecundang ke match berikutnya
+  
+          // Advance pemenang & pecundang ke match berikutnya
         const matchMap = new Map(matches.map((m) => [m.id, { ...m }]));
         advanceTeam(matchMap, finishedMatch);
 
