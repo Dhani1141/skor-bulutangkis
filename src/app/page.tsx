@@ -368,50 +368,62 @@ export default function DashboardPage() {
                         );
                       })()
                    ) : (
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                      {/* Ongoing Match */}
-                      <div className="bg-[#0b0e12] border border-[#00D4FF]/30 rounded-xl p-4 shadow-[0_0_15px_rgba(0,212,255,0.05)] relative overflow-hidden">
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-[#00D4FF]" />
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-[#00D4FF] text-xs font-bold tracking-widest uppercase flex items-center gap-2">
-                             <Zap className="w-3 h-3" /> PERTANDINGAN BERLANGSUNG
-                          </span>
-                          <span className="text-gray-500 text-[10px]">
-                            {queue.length > 0 && queue[0].status === 'ongoing' ? queue[0].id : 'Game -'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between bg-[#1f252d] rounded-lg px-4 py-2 border border-gray-700">
-                          <div className="text-sm font-bold text-white flex-1 text-center">
-                            {queue.length > 0 && queue[0].status === 'ongoing' && queue[0].teamA ? queue[0].teamA.name : 'Tim -'}
-                          </div>
-                          <div className="text-xs text-gray-500 px-3 font-black">VS</div>
-                          <div className="text-sm font-bold text-white flex-1 text-center">
-                             {queue.length > 0 && queue[0].status === 'ongoing' && queue[0].teamB ? queue[0].teamB.name : 'Tim -'}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Next Match */}
-                      <div className="bg-[#0b0e12] border border-gray-800 rounded-xl p-4 relative">
-                         <div className="flex justify-between items-center mb-3">
-                          <span className="text-gray-400 text-xs font-bold tracking-widest uppercase flex items-center gap-2">
-                             PERTANDINGAN BERIKUTNYA
-                          </span>
-                          <span className="text-gray-600 text-[10px]">
-                            {queue.length > 1 ? queue[1].id : queue.length === 1 && queue[0].status !== 'ongoing' ? queue[0].id : 'Game -'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between bg-[#1a1f26] rounded-lg px-4 py-2 border border-gray-800">
-                          <div className="text-sm font-medium text-gray-400 flex-1 text-center">
-                            {queue.length > 1 && queue[1].teamA ? queue[1].teamA.name : queue.length === 1 && queue[0].status !== 'ongoing' && queue[0].teamA ? queue[0].teamA.name : 'Tim -'}
-                          </div>
-                          <div className="text-xs text-gray-600 px-3 font-black">VS</div>
-                          <div className="text-sm font-medium text-gray-400 flex-1 text-center">
-                            {queue.length > 1 && queue[1].teamB ? queue[1].teamB.name : queue.length === 1 && queue[0].status !== 'ongoing' && queue[0].teamB ? queue[0].teamB.name : 'Tim -'}
-                          </div>
-                        </div>
-                      </div>
-                   </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        {(() => {
+                           const activeMatch = store.getActiveMatch();
+                           const firstQueue = queue[0] || null;
+                           const secondQueue = queue[1] || null;
+                           const displayOngoing = activeMatch ? activeMatch : firstQueue;
+                           const displayNext = activeMatch ? firstQueue : secondQueue;
+                           const isTrulyOngoing = !!activeMatch;
+                           return (
+                             <>
+                               {/* Ongoing Match */}
+                               <div className="bg-[#0b0e12] border border-[#00D4FF]/30 rounded-xl p-4 shadow-[0_0_15px_rgba(0,212,255,0.05)] relative overflow-hidden">
+                                 <div className={`absolute top-0 left-0 right-0 h-1 ${isTrulyOngoing ? 'bg-[#FFB800] shadow-[0_0_10px_#FFB800]' : 'bg-[#00D4FF]'}`} />
+                                 <div className="flex justify-between items-center mb-3">
+                                   <span className={`text-xs font-bold tracking-widest uppercase flex items-center gap-2 ${isTrulyOngoing ? 'text-[#FFB800]' : 'text-[#00D4FF]'}`}>
+                                      <Zap className="w-3 h-3" /> {isTrulyOngoing ? 'PERTANDINGAN BERLANGSUNG' : 'SEGERA DIMULAI'}
+                                   </span>
+                                   <span className="text-gray-500 text-[10px]">
+                                     {displayOngoing ? displayOngoing.id : 'Game -'}
+                                   </span>
+                                 </div>
+                                 <div className="flex items-center justify-between bg-[#1f252d] rounded-lg px-2 sm:px-4 py-2 border border-gray-700">
+                                   <div className="text-xs sm:text-sm font-bold text-white flex-1 text-center truncate">
+                                     {displayOngoing?.teamA ? `${displayOngoing.teamA.players[0].name} & ${displayOngoing.teamA.players[1].name}` : 'Tim -'}
+                                   </div>
+                                   <div className="text-[10px] sm:text-xs text-gray-500 px-2 sm:px-3 font-black">VS</div>
+                                   <div className="text-xs sm:text-sm font-bold text-white flex-1 text-center truncate">
+                                      {displayOngoing?.teamB ? `${displayOngoing.teamB.players[0].name} & ${displayOngoing.teamB.players[1].name}` : 'Tim -'}
+                                   </div>
+                                 </div>
+                               </div>
+                               
+                               {/* Next Match */}
+                               <div className="bg-[#0b0e12] border border-gray-800 rounded-xl p-4 relative">
+                                  <div className="flex justify-between items-center mb-3">
+                                   <span className="text-gray-400 text-xs font-bold tracking-widest uppercase flex items-center gap-2">
+                                      PERTANDINGAN BERIKUTNYA
+                                   </span>
+                                   <span className="text-gray-600 text-[10px]">
+                                     {displayNext ? displayNext.id : 'Game -'}
+                                   </span>
+                                 </div>
+                                 <div className="flex items-center justify-between bg-[#1a1f26] rounded-lg px-2 sm:px-4 py-2 border border-gray-800">
+                                   <div className="text-xs sm:text-sm font-medium text-gray-400 flex-1 text-center truncate">
+                                     {displayNext?.teamA ? `${displayNext.teamA.players[0].name} & ${displayNext.teamA.players[1].name}` : 'Tim -'}
+                                   </div>
+                                   <div className="text-[10px] sm:text-xs text-gray-600 px-2 sm:px-3 font-black">VS</div>
+                                   <div className="text-xs sm:text-sm font-medium text-gray-400 flex-1 text-center truncate">
+                                     {displayNext?.teamB ? `${displayNext.teamB.players[0].name} & ${displayNext.teamB.players[1].name}` : 'Tim -'}
+                                   </div>
+                                 </div>
+                               </div>
+                             </>
+                           );
+                        })()}
+                     </div>
                    )}
                    
                    {/* Main Bracket Area */}
