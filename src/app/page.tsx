@@ -197,9 +197,9 @@ export default function DashboardPage() {
                     <input type="text" value={inputValue} onChange={e => {setInputValue(e.target.value); setError('');}}
                            onKeyDown={e => e.key === 'Enter' && handleAddPlayer()}
                            placeholder="Masukkan nama pemain amatir..." disabled={isMaxed || phase !== 'input'}
-                           className="flex-1 bg-[#0b0e12] border border-gray-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#00D4FF] focus:ring-1 focus:ring-[#00D4FF] text-white disabled:opacity-50" />
+                           className="flex-1 min-w-0 bg-[#111418] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#00D4FF] focus:ring-1 focus:ring-[#00D4FF] transition" />
                     <button onClick={handleAddPlayer} disabled={isMaxed || phase !== 'input'}
-                            className="bg-white text-black px-4 py-2 rounded-lg font-bold text-xl hover:bg-gray-200 disabled:opacity-50">
+                            className="bg-white text-black w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-xl font-black text-xl hover:bg-gray-200 disabled:opacity-50 shadow-[0_0_10px_rgba(255,255,255,0.2)]">
                       +
                     </button>
                   </div>
@@ -271,7 +271,7 @@ export default function DashboardPage() {
                </div>
                
                <div className="p-6">
-                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-8 relative">
+                 <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8 relative">
                    
                    {/* Wheel 1 */}
                    <div className="flex flex-col items-center">
