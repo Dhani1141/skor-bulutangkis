@@ -41,34 +41,40 @@ function CircularWheel({ players, targetPlayerId, onFinish, colorTheme }: { play
   const sliceAngle = displayPlayers.length > 0 ? 360 / displayPlayers.length : 360;
   const colors = colorTheme === 'blue' 
     ? ['#0088cc', '#00aaff'] 
-    : ['#1e90ff', '#32cd32']; // We'll refine colors later
+    : ['#228b22', '#32cd32'];
 
   return (
-    <div className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full overflow-hidden border-4 shadow-lg transition-transform duration-[3500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
-         style={{
-           transform: `rotate(${rotation}deg)`,
-           borderColor: colorTheme === 'blue' ? '#00D4FF' : '#39FF14',
-           boxShadow: colorTheme === 'blue' ? '0 0 20px rgba(0,212,255,0.3)' : '0 0 20px rgba(57,255,20,0.3)',
-         }}>
-         
-         {/* Simple pie slices using conic-gradient (approximate for now, better to use absolute positioned divs if we want text) */}
-         <div className="absolute inset-0" style={{
-             background: `conic-gradient(${displayPlayers.map((p, i) => `${colors[i % 2]} ${i * sliceAngle}deg ${(i + 1) * sliceAngle}deg`).join(', ')})`
-         }} />
-         
-         {/* Text labels */}
-         {displayPlayers.map((p, i) => {
-           const midAngle = (i * sliceAngle) + (sliceAngle / 2);
-           return (
-             <div key={p.id} className="absolute inset-0 flex items-start justify-center text-xs font-bold text-white pt-4"
-                  style={{ transform: `rotate(${midAngle}deg)`, textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-               {p.name.length > 10 ? p.name.substring(0,8) + '..' : p.name}
-             </div>
-           );
-         })}
-         
-         {/* Center dot */}
-         <div className="absolute inset-0 m-auto w-8 h-8 bg-white rounded-full shadow-inner z-10" />
+    <div className="relative flex flex-col items-center">
+      {/* Pointer Triangle */}
+      <div className="absolute -top-3 sm:-top-4 z-20 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[16px] drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
+           style={{ borderTopColor: colorTheme === 'blue' ? '#00D4FF' : '#39FF14' }} />
+           
+      <div className="relative w-48 h-48 sm:w-60 sm:h-60 mt-2 rounded-full overflow-hidden border-4 shadow-lg transition-transform duration-[3500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+           style={{
+             transform: `rotate(${rotation}deg)`,
+             borderColor: colorTheme === 'blue' ? '#00D4FF' : '#39FF14',
+             boxShadow: colorTheme === 'blue' ? '0 0 20px rgba(0,212,255,0.3)' : '0 0 20px rgba(57,255,20,0.3)',
+           }}>
+           
+           {/* Simple pie slices using conic-gradient */}
+           <div className="absolute inset-0" style={{
+               background: `conic-gradient(${displayPlayers.map((p, i) => `${colors[i % 2]} ${i * sliceAngle}deg ${(i + 1) * sliceAngle}deg`).join(', ')})`
+           }} />
+           
+           {/* Text labels */}
+           {displayPlayers.map((p, i) => {
+             const midAngle = (i * sliceAngle) + (sliceAngle / 2);
+             return (
+               <div key={p.id} className="absolute inset-0 flex items-start justify-center text-xs font-bold text-white pt-4"
+                    style={{ transform: `rotate(${midAngle}deg)`, textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+                 {p.name.length > 10 ? p.name.substring(0,8) + '..' : p.name}
+               </div>
+             );
+           })}
+           
+           {/* Center dot */}
+           <div className="absolute inset-0 m-auto w-8 h-8 bg-white rounded-full shadow-inner z-10" />
+      </div>
     </div>
   );
 }
@@ -272,7 +278,10 @@ export default function DashboardPage() {
                </div>
                
                <div className="p-6">
-                 <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8 relative">
+                 <div className="text-center font-bold text-gray-400 text-xs sm:text-sm uppercase tracking-widest mb-6 border border-gray-700 p-3 rounded">
+                    {phase === 'drafting' && remainingPlayers.length === 0 ? 'Draf Tim Selesai! Tim Baru Terbentuk!' : 'SISTEM SEDANG MENGACAK...'}
+                 </div>
+                 <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
                    
                    {/* Wheel 1 */}
                    <div className="flex flex-col items-center">
@@ -285,11 +294,6 @@ export default function DashboardPage() {
                       <div className="mt-4 bg-[#00D4FF]/10 border border-[#00D4FF]/30 px-4 py-1.5 rounded text-[#00D4FF] font-bold text-xs text-center w-full min-h-[32px]">
                          {phase === 'drafting' && remainingPlayers.length === 0 && finalTeams.length > 0 ? `TERPILIH: ${finalTeams[finalTeams.length - 1].players[0].name} (Tim Biru)` : currentTeam.length >= 1 ? currentTeam[0].name : 'Pemain 1'}
                       </div>
-                   </div>
-                   
-                   {/* Center text */}
-                   <div className="text-center font-bold text-gray-400 text-xs sm:text-sm uppercase tracking-widest max-w-[120px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a1f26]/90 backdrop-blur p-3 rounded z-10 border border-gray-700 shadow-xl">
-                      {phase === 'drafting' && remainingPlayers.length === 0 ? 'Draf Tim Selesai! Tim Baru Terbentuk!' : 'SISTEM SEDANG MENGACAK...'}
                    </div>
                    
                    {/* Wheel 2 */}
