@@ -155,25 +155,26 @@ export default function DashboardPage() {
       
       {/* ── TOP BANNER ── */}
       <header className="sticky top-0 z-30 bg-[#0b0e12]/90 backdrop-blur-md border-b border-gray-800">
-         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-              <div className="text-xl font-black text-white tracking-wide flex items-center gap-2">
+         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 flex flex-col xl:flex-row items-center xl:justify-between gap-4">
+           <div className="flex flex-col md:flex-row items-center gap-2 text-center xl:text-left">
+              <div className="text-lg sm:text-xl font-black text-white tracking-wide flex items-center gap-2">
                  <Zap className="w-5 h-5 text-[#00D4FF]" />
-                 PENYIAPAN TURNAMEN <span className="text-gray-500 font-normal text-sm ml-2">(Ganda Amatir 2v2)</span>
+                 PENYIAPAN TURNAMEN
               </div>
+              <span className="text-gray-500 font-normal text-xs sm:text-sm md:ml-2">(Ganda Amatir 2v2)</span>
            </div>
            
-           <div className="flex items-center gap-3">
-              <div className="px-3 py-1.5 rounded-md bg-[#00D4FF]/10 border border-[#00D4FF]/30 text-[#00D4FF] text-xs font-bold tracking-wider uppercase">
+           <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 w-full xl:w-auto">
+              <div className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-[#00D4FF]/10 border border-[#00D4FF]/30 text-[#00D4FF] text-[10px] sm:text-xs font-bold tracking-wider uppercase">
                 PEMAIN TERDAFTAR [{totalPlayers} / 16]
               </div>
-              <div className="px-3 py-1.5 rounded-md bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-bold tracking-wider uppercase">
+              <div className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-[10px] sm:text-xs font-bold tracking-wider uppercase">
                 TIM TERBENTUK [{phase === 'input' ? 0 : phase === 'drafting' ? finalTeams.length : teams.length}]
               </div>
-              <div className="px-3 py-1.5 rounded-md bg-gray-800 border border-gray-700 text-gray-400 text-xs font-bold tracking-wider uppercase">
+              <div className="hidden sm:block px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-gray-800 border border-gray-700 text-gray-400 text-[10px] sm:text-xs font-bold tracking-wider uppercase">
                 SLOT SISA [{16 - totalPlayers}]
               </div>
-              <button onClick={resetTournament} className="ml-4 px-4 py-1.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs transition">
+              <button onClick={resetTournament} className="sm:ml-4 px-3 sm:px-4 py-1 sm:py-1.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-[10px] sm:text-xs transition">
                 Hapus Semua
               </button>
            </div>
