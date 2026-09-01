@@ -342,23 +342,30 @@ export default function DashboardPage() {
                 <div className="p-6 flex-1 flex flex-col">
                    {/* Top Active Matches Banner */}
                    {phase === 'finished' && store.champion ? (
-                      <div className="mb-8 relative rounded-2xl overflow-hidden bg-gradient-to-br from-yellow-900/40 via-black to-yellow-900/20 border border-yellow-500/50 shadow-[0_0_40px_rgba(250,204,21,0.2)] p-8 text-center flex flex-col items-center justify-center">
-                        <div className="absolute inset-0 pointer-events-none bg-[url('/confetti.png')] opacity-30 mix-blend-screen" />
-                        <h3 className="text-yellow-400 font-black text-4xl tracking-widest drop-shadow-[0_0_10px_rgba(250,204,21,0.8)] mb-6">
-                           JUARA TURNAMEN: GRAND FINAL
-                        </h3>
-                        <div className="flex items-center gap-8 z-10">
-                           <Trophy className="w-24 h-24 text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-pulse" />
-                           <div className="bg-[#111]/80 backdrop-blur border-2 border-yellow-500 rounded-xl p-6 shadow-[0_0_30px_rgba(250,204,21,0.4)]">
-                              <div className="text-yellow-400 text-xs font-black tracking-widest mb-2">PEMENANG MUTLAK</div>
-                              <div className="flex items-center gap-4">
-                                 <div className="text-white font-black text-2xl">{store.champion.name} <span className="text-gray-400 text-sm ml-2">({store.champion.players[0].name} & {store.champion.players[1].name})</span></div>
-                                 <div className="text-yellow-400 font-black text-3xl">21 - 0</div>
-                                 <Trophy className="w-6 h-6 text-yellow-400" />
-                              </div>
-                           </div>
-                        </div>
-                      </div>
+                      (() => {
+                        const finalMatch = matches.slice().reverse().find(m => m.status === 'finished' && m.winner?.id === store.champion?.id);
+                        const winnerScore = finalMatch ? (finalMatch.winner?.id === finalMatch.teamA?.id ? finalMatch.scoreA : finalMatch.scoreB) : 21;
+                        const loserScore = finalMatch ? (finalMatch.winner?.id === finalMatch.teamA?.id ? finalMatch.scoreB : finalMatch.scoreA) : 0;
+                        return (
+                          <div className="mb-8 relative rounded-2xl overflow-hidden bg-gradient-to-br from-yellow-900/40 via-black to-yellow-900/20 border border-yellow-500/50 shadow-[0_0_40px_rgba(250,204,21,0.2)] p-8 text-center flex flex-col items-center justify-center">
+                            <div className="absolute inset-0 pointer-events-none bg-[url('/confetti.png')] opacity-30 mix-blend-screen" />
+                            <h3 className="text-yellow-400 font-black text-4xl tracking-widest drop-shadow-[0_0_10px_rgba(250,204,21,0.8)] mb-6">
+                               JUARA TURNAMEN: GRAND FINAL
+                            </h3>
+                            <div className="flex items-center gap-8 z-10">
+                               <Trophy className="w-24 h-24 text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-pulse" />
+                               <div className="bg-[#111]/80 backdrop-blur border-2 border-yellow-500 rounded-xl p-6 shadow-[0_0_30px_rgba(250,204,21,0.4)]">
+                                  <div className="text-yellow-400 text-xs font-black tracking-widest mb-2">PEMENANG MUTLAK</div>
+                                  <div className="flex items-center gap-4">
+                                     <div className="text-white font-black text-2xl">{store.champion.name} <span className="text-gray-400 text-sm ml-2">({store.champion.players[0].name} & {store.champion.players[1].name})</span></div>
+                                     <div className="text-yellow-400 font-black text-3xl">{winnerScore} - {loserScore}</div>
+                                     <Trophy className="w-6 h-6 text-yellow-400" />
+                                  </div>
+                               </div>
+                            </div>
+                          </div>
+                        );
+                      })()
                    ) : (
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                       {/* Ongoing Match */}
