@@ -16,7 +16,7 @@ function formatTime(ms: number) {
 }
 
 export default function RestTimer({ restEndTime, onSkip }: RestTimerProps) {
-  const [remaining, setRemaining] = useState(restEndTime - Date.now());
+  const [remaining, setRemaining] = useState(0);
 
   const tick = useCallback(() => {
     const diff = restEndTime - Date.now();
@@ -27,10 +27,11 @@ export default function RestTimer({ restEndTime, onSkip }: RestTimerProps) {
   }, [restEndTime, onSkip]);
 
   useEffect(() => {
+    // initialize on first render without triggering setState error
+    setRemaining(restEndTime - Date.now());
     const id = setInterval(tick, 250);
-    tick(); // immediate first tick
     return () => clearInterval(id);
-  }, [tick]);
+  }, [tick, restEndTime]);
 
   const pct = Math.min(100, Math.max(0, (remaining / (5 * 60 * 1000)) * 100));
   const timeStr = formatTime(remaining);
