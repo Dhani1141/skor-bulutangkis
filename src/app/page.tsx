@@ -113,6 +113,12 @@ function CircularWheel({
 // ── Halaman Utama ─────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   const store = useLeagueStore();
   const {
     phase,
@@ -147,6 +153,14 @@ export default function DashboardPage() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [targetIdP1, setTargetIdP1] = useState<string | null>(null);
   const [targetIdP2, setTargetIdP2] = useState<string | null>(null);
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+        <div className="animate-pulse text-[#00D4FF]">Memuat...</div>
+      </div>
+    );
+  }
 
   const totalPlayers = players.length;
   const isEven = totalPlayers % 2 === 0;
