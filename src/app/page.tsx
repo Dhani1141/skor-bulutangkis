@@ -646,7 +646,7 @@ function ChampionBanner({
           🏆 JUARA LIGA MUSIM INI
         </div>
         <div className="text-white font-black text-2xl">{champion.name}</div>
-        <div className="text-yellow-200/70 text-sm mt-1">
+        <div className="text-yellow-100 font-bold text-sm mt-1 drop-shadow-md">
           {champion.players[0].name} & {champion.players[1].name}
         </div>
       </div>

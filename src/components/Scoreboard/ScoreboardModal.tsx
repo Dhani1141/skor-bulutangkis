@@ -337,7 +337,8 @@ function ScoreSide({
   const accentColor = side === 'A' ? '#00D4FF' : '#FF3131';
   const winnerColor = '#39FF14';
 
-  const nameColor = isWinner ? winnerColor : isLoser ? '#333' : '#F0F0F0';
+  const nameColor = isWinner ? winnerColor : isLoser ? '#555' : '#F0F0F0';
+  const playerColor = isWinner ? 'rgba(57,255,20,0.8)' : isLoser ? '#666' : '#A0A0A0';
   const scoreColor = isWinner ? winnerColor : isLoser ? '#2A2A2A' : '#F0F0F0';
   const nameShadow = isWinner ? '0 0 14px rgba(57,255,20,0.5)' : 'none';
 
@@ -362,7 +363,7 @@ function ScoreSide({
           {isWinner && <span className="ml-2 text-base">👑</span>}
         </div>
         {players && (
-          <div className="text-xs mt-1" style={{ color: '#3A3A3A' }}>
+          <div className="text-sm font-semibold mt-1" style={{ color: playerColor }}>
             {players[0].name} & {players[1].name}
           </div>
         )}
