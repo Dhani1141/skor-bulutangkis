@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Trophy, RefreshCw, Medal, Crown, Star } from 'lucide-react';
-import { getLeaderboard } from '@/lib/hallOfFame';
+import { Trophy, RefreshCw, Medal, Crown, Star, Trash2 } from 'lucide-react';
+import { getLeaderboard, deleteFromHallOfFame } from '@/lib/hallOfFame';
 import type { HallOfFameEntry } from '@/types/league';
 
 /**
@@ -30,6 +30,16 @@ export default function HallOfFameBoard() {
       setIsLoading(false);
     }
   }, []);
+
+  const handleDelete = async (name: string) => {
+    if (!confirm(`Hapus pemain "${name}" dari Hall of Fame secara permanen?`)) return;
+    try {
+      await deleteFromHallOfFame(name);
+      await fetchData();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Gagal menghapus pemain');
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -74,7 +84,7 @@ export default function HallOfFameBoard() {
         ) : (
           <div className="space-y-2">
             {entries.map((entry, idx) => (
-              <HallOfFameRow key={entry.name} entry={entry} rank={idx + 1} />
+              <HallOfFameRow key={entry.name} entry={entry} rank={idx + 1} onDelete={() => handleDelete(entry.name)} />
             ))}
           </div>
         )}
@@ -93,7 +103,7 @@ export default function HallOfFameBoard() {
 
 // ── Row individual ─────────────────────────────────────────────────────────
 
-function HallOfFameRow({ entry, rank }: { entry: HallOfFameEntry; rank: number }) {
+function HallOfFameRow({ entry, rank, onDelete }: { entry: HallOfFameEntry; rank: number; onDelete: () => void }) {
   const medalIcon =
     rank === 1 ? '🥇'
     : rank === 2 ? '🥈'
@@ -116,7 +126,7 @@ function HallOfFameRow({ entry, rank }: { entry: HallOfFameEntry; rank: number }
 
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition"
+      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition"
       style={{
         background:
           rank === 1
@@ -165,6 +175,16 @@ function HallOfFameRow({ entry, rank }: { entry: HallOfFameEntry; rank: number }
           {entry.championships_won}×
         </span>
       </div>
+
+      {/* Delete Button */}
+      <button
+        onClick={onDelete}
+        className="ml-1 w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+        title="Hapus pemain"
+        aria-label="Hapus dari Hall of Fame"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
     </div>
   );
 }

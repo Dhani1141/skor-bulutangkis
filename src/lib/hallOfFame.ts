@@ -15,6 +15,7 @@ import {
   query,
   orderBy,
   Timestamp,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Player, HallOfFameEntry } from '@/types/league';
@@ -89,4 +90,17 @@ export async function getLeaderboard(): Promise<HallOfFameEntry[]> {
       last_won_at: data.last_won_at as string,
     } satisfies HallOfFameEntry;
   });
+}
+
+// ── deleteFromHallOfFame ───────────────────────────────────────────────────
+
+/**
+ * Hapus pemain dari Hall of Fame secara permanen.
+ * 
+ * @param playerName - Nama pemain yang akan dihapus
+ */
+export async function deleteFromHallOfFame(playerName: string): Promise<void> {
+  const docId = toDocId(playerName);
+  const docRef = doc(db, COLLECTION, docId);
+  await deleteDoc(docRef);
 }
