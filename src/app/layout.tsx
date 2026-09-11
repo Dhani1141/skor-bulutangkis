@@ -9,10 +9,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Bulu Tangkis Pro – Manajemen Turnamen Double Elimination",
+  title: "Bulu Tangkis Pro – Sistem Liga Round-Robin",
   description:
-    "Aplikasi manajemen turnamen bulu tangkis lokal dengan sistem Double Elimination Bracket. Input pemain, acak tim, dan catat skor dengan aturan BWF resmi.",
-  keywords: ["bulu tangkis", "badminton", "turnamen", "double elimination", "bracket"],
+    "Aplikasi manajemen liga bulu tangkis lokal dengan sistem Round-Robin. Buat tim dinamis, jadwal otomatis, papan skor 30 poin, edit nama pemain langsung, dan Hall of Fame Firebase.",
+  keywords: ["bulu tangkis", "badminton", "liga", "round-robin", "klasemen", "hall of fame"],
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
