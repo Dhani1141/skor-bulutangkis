@@ -189,28 +189,19 @@ export default function DashboardPage() {
     if (isSpinning || remainingPlayers.length === 0) return;
     setIsSpinning(true);
 
+    const activePairIndex = store.finalTeams.length;
+    const activePair = store.predefinedPairs[activePairIndex];
+
     let selectedId = '';
-    if (store.forcedNextResult) {
-      const forced = remainingPlayers.find(
-        (p) => p.name.toLowerCase() === store.forcedNextResult,
-      );
-      if (forced) selectedId = forced.id;
-    }
-
-    if (!selectedId) {
-      let pool = remainingPlayers;
-      if (currentTeam.length === 1) {
-        pool = remainingPlayers.filter(
-          (p) => p.name.toLowerCase() !== 'kunyuk' && p.name.toLowerCase() !== 'diccy',
-        );
-        if (pool.length === 0) pool = remainingPlayers;
-      }
-      selectedId = pool[Math.floor(Math.random() * pool.length)].id;
-    }
-
+    
+    // Pilih P1 dari pasangan yang sudah dipre-kalkulasi
     if (currentTeam.length === 0) {
+      selectedId = activePair[0].id;
       setTargetIdP1(selectedId);
-    } else {
+    } 
+    // Pilih P2 dari pasangan yang sama
+    else {
+      selectedId = activePair[1].id;
       setTargetIdP2(selectedId);
     }
   };

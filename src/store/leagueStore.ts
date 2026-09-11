@@ -30,6 +30,7 @@ interface LeagueState {
   remainingPlayers: Player[];
   currentTeam: Player[];
   finalTeams: Team[];
+  predefinedPairs: Player[][];
   forcedNextResult: string;
 
   // Status simpan ke Firebase
@@ -123,6 +124,7 @@ const initialState = {
   remainingPlayers: [] as Player[],
   currentTeam: [] as Player[],
   finalTeams: [] as Team[],
+  predefinedPairs: [] as Player[][],
   forcedNextResult: '',
   isSavingToFirebase: false,
   firebaseSaveError: null,
@@ -202,15 +204,21 @@ export const useLeagueStore = create<LeagueState>()(
 
       startDrafting: () => {
         const { players } = get();
-        // Butuh minimal 4 pemain (2 tim) dan harus genap
         if (players.length < 4 || players.length % 2 !== 0) return;
 
+        const { generateCustomTeams } = require('@/lib/customMatchmaking');
+        const pairs = generateCustomTeams([...players]);
+        
+        // remainingPlayers diacak HANYA untuk tampilan roda putar (biar posisinya ngacak)
+        const { fisherYatesShuffle } = require('@/lib/leagueScheduler');
         const shuffled = fisherYatesShuffle([...players]);
+
         set({
           phase: 'drafting',
           remainingPlayers: shuffled,
           currentTeam: [],
           finalTeams: [],
+          predefinedPairs: pairs,
           forcedNextResult: '',
         });
       },
@@ -223,45 +231,20 @@ export const useLeagueStore = create<LeagueState>()(
         const newRemaining = state.remainingPlayers.filter((p) => p.id !== playerId);
         const newCurrentTeam = [...state.currentTeam, player];
         const newFinalTeams = [...state.finalTeams];
-        let newForcedResult = '';
 
-        // Logika "rigged" (Kunyuk & Diccy selalu setim)
-        if (newCurrentTeam.length === 1) {
-          const drawnName = player.name.toLowerCase();
-          if (drawnName === 'kunyuk') {
-            if (newRemaining.some((p) => p.name.toLowerCase() === 'diccy')) {
-              newForcedResult = 'diccy';
-            }
-          } else if (drawnName === 'diccy') {
-            if (newRemaining.some((p) => p.name.toLowerCase() === 'kunyuk')) {
-              newForcedResult = 'kunyuk';
-            }
-          }
-        } else if (newCurrentTeam.length === 2) {
+        if (newCurrentTeam.length === 2) {
           newFinalTeams.push({
             id: uuidv4(),
             name: '',
             players: [newCurrentTeam[0], newCurrentTeam[1]],
           });
           newCurrentTeam.length = 0;
-          newForcedResult = '';
-
-          // Auto-complete: jika sisa tepat 2 pemain, langsung bentuk tim terakhir
-          if (newRemaining.length === 2) {
-            newFinalTeams.push({
-              id: uuidv4(),
-              name: '',
-              players: [newRemaining[0], newRemaining[1]],
-            });
-            newRemaining.length = 0;
-          }
         }
 
         set({
           remainingPlayers: newRemaining,
           currentTeam: newCurrentTeam,
           finalTeams: newFinalTeams,
-          forcedNextResult: newForcedResult,
         });
       },
 
