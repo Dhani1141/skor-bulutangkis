@@ -263,10 +263,6 @@ export const useLeagueStore = create<LeagueState>()(
           finalTeams: newFinalTeams,
           forcedNextResult: newForcedResult,
         });
-
-        if (newRemaining.length === 0) {
-          get().finalizeDrafting();
-        }
       },
 
       finalizeDrafting: () => {
