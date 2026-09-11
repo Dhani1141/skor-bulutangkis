@@ -19,14 +19,8 @@ interface LeagueViewProps {
  * - Tombol "Mulai" hanya untuk match pending berikutnya
  */
 export default function LeagueView({ onOpenMatch }: LeagueViewProps) {
-  const { matches, getActiveMatch, getUpcomingMatches, phase } = useLeagueStore(
-    (s) => ({
-      matches: s.matches,
-      getActiveMatch: s.getActiveMatch,
-      getUpcomingMatches: s.getUpcomingMatches,
-      phase: s.phase,
-    }),
-  );
+  const store = useLeagueStore();
+  const { matches, getActiveMatch, getUpcomingMatches, phase } = store;
 
   const activeMatch = getActiveMatch();
   const upcoming = getUpcomingMatches();

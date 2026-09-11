@@ -13,11 +13,8 @@ import PlayerEditModal from '@/components/League/PlayerEditModal';
  * Setiap nama pemain memiliki ikon edit (✏️) untuk live-edit.
  */
 export default function StandingsTable() {
-  const { getStandings, teams, phase } = useLeagueStore((s) => ({
-    getStandings: s.getStandings,
-    teams: s.teams,
-    phase: s.phase,
-  }));
+  const store = useLeagueStore();
+  const { getStandings, teams, phase } = store;
 
   const standings = getStandings();
 
