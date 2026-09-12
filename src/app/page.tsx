@@ -68,7 +68,11 @@ function CircularWheel({
       {/* Penunjuk segitiga */}
       <div
         className="absolute -top-3 sm:-top-4 z-20 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[16px] drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
-        style={{ borderTopColor: colorTheme === 'blue' ? '#00D4FF' : '#39FF14' }}
+        style={{ 
+          borderTopColor: colorTheme === 'blue' ? '#00D4FF' : '#39FF14',
+          left: '50%',
+          transform: 'translateX(-50%)'
+        }}
       />
       <div
         className="relative w-48 h-48 sm:w-60 sm:h-60 mt-2 rounded-full overflow-hidden border-4 shadow-lg transition-transform duration-[3500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
@@ -107,7 +111,9 @@ function CircularWheel({
             </div>
           );
         })}
-        <div className="absolute inset-0 m-auto w-8 h-8 bg-white rounded-full shadow-inner z-10" />
+        <div className="absolute inset-0 m-auto w-8 h-8 bg-white rounded-full shadow-inner z-10 flex items-center justify-center">
+           <span className="text-[8px] text-gray-300">v2</span>
+        </div>
       </div>
     </div>
   );
