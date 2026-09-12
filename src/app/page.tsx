@@ -42,7 +42,9 @@ function CircularWheel({
       if (targetIndex === -1) return;
 
       const sliceAngle = 360 / players.length;
-      const targetAngle = 360 - targetIndex * sliceAngle;
+      // Berhenti di tengah-tengah irisan, plus sedikit acakan biar natural
+      const randomOffset = (Math.random() - 0.5) * (sliceAngle * 0.6);
+      const targetAngle = 360 - (targetIndex * sliceAngle) - (sliceAngle / 2) + randomOffset;
       const extraSpins = 360 * 5;
       const finalRotation = rotation + extraSpins + (targetAngle - (rotation % 360));
       setRotation(finalRotation);
