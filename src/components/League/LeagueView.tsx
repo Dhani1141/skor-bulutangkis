@@ -267,7 +267,7 @@ function MatchRow({
   };
 
   const cfg = statusConfig[status];
-  const canOpen = status === 'pending' && isNext;
+  const canOpen = (status === 'pending' && isNext) || status === 'ongoing';
 
   return (
     <div
@@ -346,15 +346,14 @@ function MatchRow({
         {canOpen ? (
           <button
             onClick={() => onOpen(id)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition hover:opacity-90"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
             style={{
-              background: 'rgba(0,212,255,0.12)',
-              border: '1px solid rgba(0,212,255,0.3)',
-              color: '#00D4FF',
+              background: status === 'ongoing' ? 'rgba(255,184,0,0.1)' : 'rgba(0,212,255,0.1)',
+              border: status === 'ongoing' ? '1px solid rgba(255,184,0,0.3)' : '1px solid rgba(0,212,255,0.3)',
+              color: status === 'ongoing' ? '#FFB800' : '#00D4FF',
             }}
           >
-            Mulai
-            <ChevronRight className="w-3 h-3" />
+            {status === 'ongoing' ? 'Lanjut' : 'Mulai'} <ChevronRight className="w-3 h-3" />
           </button>
         ) : (
           <span

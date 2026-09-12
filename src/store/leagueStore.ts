@@ -435,7 +435,7 @@ export const useLeagueStore = create<LeagueState>()(
       getUpcomingMatches: () => {
         const { matches } = get();
         return matches
-          .filter((m) => m.status === 'pending')
+          .filter((m) => m.status !== 'finished')
           .sort((a, b) => a.round - b.round || a.position - b.position);
       },
 
