@@ -10,6 +10,7 @@ import { fisherYatesShuffle } from '@/lib/shuffleUtils';
 import { generateLeagueSchedule } from '@/lib/leagueScheduler';
 import { checkWinner } from '@/lib/scoringLogic';
 import { saveChampions } from '@/lib/hallOfFame';
+import { generateCustomTeams } from '@/lib/customMatchmaking';
 
 // ── State Interface ────────────────────────────────────────────────────────
 
@@ -206,11 +207,9 @@ export const useLeagueStore = create<LeagueState>()(
         const { players } = get();
         if (players.length < 4 || players.length % 2 !== 0) return;
 
-        const { generateCustomTeams } = require('@/lib/customMatchmaking');
         const pairs = generateCustomTeams([...players]);
         
         // remainingPlayers diacak HANYA untuk tampilan roda putar (biar posisinya ngacak)
-        const { fisherYatesShuffle } = require('@/lib/leagueScheduler');
         const shuffled = fisherYatesShuffle([...players]);
 
         set({
