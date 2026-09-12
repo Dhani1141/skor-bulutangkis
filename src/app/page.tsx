@@ -19,6 +19,7 @@ import RestTimer from '@/components/Queue/RestTimer';
 import LeagueView from '@/components/League/LeagueView';
 import StandingsTable from '@/components/League/StandingsTable';
 import HallOfFameBoard from '@/components/HallOfFame/HallOfFameBoard';
+import GhostFibers from '@/components/GhostFibers';
 
 // ── Komponen Roda Putar (dipertahankan dari versi lama) ───────────────────
 
@@ -215,14 +216,36 @@ export default function DashboardPage() {
   // ── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <div
-      className="min-h-screen bg-[#111418] text-[#e5e7eb] font-sans overflow-x-hidden"
-      style={{
-        backgroundImage:
-          'linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)',
-        backgroundSize: '40px 40px',
-      }}
-    >
+    <div className="min-h-screen bg-transparent text-[#e5e7eb] font-sans overflow-x-hidden relative">
+      <GhostFibers
+        lineColor="#140E35"
+        glowColor="#3437A0"
+        speed={0.2}
+        scale={2}
+        rotation={0}
+        rotationSpeed={0.25}
+        layers={4}
+        waveAmplitude={0.015}
+        waveFrequency={3}
+        waveSpeed={0.15}
+        layerSpeed={0.08}
+        twist={0.1}
+        twistFrequency={5}
+        twistSpeed={1.2}
+        lineFrequency={5}
+        lineSpacing={2}
+        lineSharpness={16}
+        glowFalloff={10}
+        glowIntensity={1.6}
+        brightness={2}
+        blueBoost={1.25}
+        vignette={0.8}
+        grain={0.05}
+        dpr={1}
+        lightMode={false}
+        fps={60}
+        paused={false}
+      />
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-30 bg-[#0b0e12]/90 backdrop-blur-md border-b border-gray-800">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 flex flex-col xl:flex-row items-center xl:justify-between gap-4">
